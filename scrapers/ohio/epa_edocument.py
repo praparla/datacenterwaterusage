@@ -216,7 +216,7 @@ class OhioEPAScraper(BaseScraper):
                         "url": doc_url or self.config["oh_epa_edocument"],
                         "pdf_url": pdf_url,
                         "date": None,
-                        "search_term": search_term,
+                        "match_term": f"Ohio EPA full-text search: '{search_term}'",
                     })
 
                 except Exception:

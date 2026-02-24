@@ -13,6 +13,7 @@ from typing import AsyncGenerator, Optional
 from models.document import DocumentSource
 from scrapers.base import BaseScraper
 from utils.http_client import RateLimitedClient
+from utils.matching import get_match_reason
 
 
 class DEQArcGISScraper(BaseScraper):
@@ -28,7 +29,7 @@ class DEQArcGISScraper(BaseScraper):
     async def discover(self, limit: int | None = None) -> AsyncGenerator[dict, None]:
         """Query ArcGIS REST API and yield matching facility records."""
         api_url = self.config["va_deq_arcgis_vpdes_outfalls"]
-        known_companies = [c.upper() for c in self.config.get("known_companies", [])]
+        known_companies = self.config.get("known_companies", [])
         count = 0
         offset = 0
         batch_size = 1000
@@ -69,12 +70,8 @@ class DEQArcGISScraper(BaseScraper):
                     if not fac_name:
                         continue
 
-                    fac_upper = fac_name.upper()
-                    matched = any(company in fac_upper for company in known_companies)
-                    if not matched and "DATA CENTER" in fac_upper:
-                        matched = True
-
-                    if matched:
+                    match_reason = get_match_reason(fac_name, known_companies)
+                    if match_reason:
                         permit_num = str(attrs.get("VAP_PMT_NO", "")).strip()
                         outfall = str(attrs.get("OUTFALLNO", "")).strip()
                         yield {
@@ -87,6 +84,8 @@ class DEQArcGISScraper(BaseScraper):
                             "facility_name": fac_name,
                             "id": f"arcgis-{permit_num}-{outfall}",
                             "attributes": attrs,
+                            "match_term": f"facility name matched: {match_reason}",
+                            "matched_company": match_reason if match_reason != "data center" else None,
                         }
                         count += 1
 
@@ -122,6 +121,8 @@ class DEQArcGISScraper(BaseScraper):
             attrs = meta.get("attributes", {})
             record.company_llc_name = meta.get("facility_name")
             record.extracted_water_metric = self._extract_metrics_from_attrs(attrs)
+            record.match_term = meta.get("match_term")
+            record.matched_company = meta.get("matched_company")
 
             await self.state_manager.mark_fetched(self.name, doc_id)
             results.append(record)

@@ -109,20 +109,25 @@ class NewAlbanyScraper(BaseScraper):
                             "url": full_url,
                             "pdf_url": full_url,
                             "date": None,
+                            "match_term": "PDF link on council page",
                         })
 
                     # Also catch links with relevant keywords
-                    elif any(
-                        term in text.lower()
-                        for term in ["minutes", "agenda", "water", "utility", "data center"]
-                    ):
-                        full_url = urljoin(self.BASE_URL, href)
-                        entries.append({
-                            "title": text,
-                            "url": full_url,
-                            "pdf_url": full_url if href.endswith(".pdf") else None,
-                            "date": None,
-                        })
+                    else:
+                        search_terms = self.config.get("search_keywords", [])
+                        matched_kw = next(
+                            (kw for kw in search_terms if kw.lower() in text.lower()),
+                            None,
+                        )
+                        if matched_kw:
+                            full_url = urljoin(self.BASE_URL, href)
+                            entries.append({
+                                "title": text,
+                                "url": full_url,
+                                "pdf_url": full_url if href.endswith(".pdf") else None,
+                                "date": None,
+                                "match_term": f"link text matched: '{matched_kw}'",
+                            })
 
             except Exception as e:
                 self.logger.error("page_scrape_failed", url=page_url, error=str(e))
@@ -149,6 +154,7 @@ class NewAlbanyScraper(BaseScraper):
                         "url": full_url,
                         "pdf_url": full_url,
                         "date": None,
+                        "match_term": "PDF link on council page (Playwright)",
                     })
 
             await page.close()

@@ -85,12 +85,14 @@ class LoudounHighbondScraper(BaseScraper):
 
                     # Look for board meeting documents
                     text_lower = text.lower()
-                    relevant_terms = [
-                        "minutes", "agenda", "board", "meeting",
-                        "water", "agreement", "resolution",
-                    ]
+                    relevant_terms = self.config.get("search_keywords", [])
+                    matched_kw = next(
+                        (kw for kw in relevant_terms if kw.lower() in text_lower),
+                        None,
+                    )
 
-                    if any(term in text_lower for term in relevant_terms) or href.endswith(".pdf"):
+                    if matched_kw or href.endswith(".pdf"):
+                        reason = f"link text matched: '{matched_kw}'" if matched_kw else "PDF link"
                         yield {
                             "title": text[:300],
                             "url": full_url,
@@ -99,6 +101,7 @@ class LoudounHighbondScraper(BaseScraper):
                             "state": "VA",
                             "agency": "Loudoun Water",
                             "id": f"highbond-{count}",
+                            "match_term": reason,
                         }
                         count += 1
 

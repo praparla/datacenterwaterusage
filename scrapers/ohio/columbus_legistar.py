@@ -27,10 +27,7 @@ class ColumbusLegistarScraper(BaseScraper):
     async def discover(self, limit: int | None = None) -> AsyncGenerator[dict, None]:
         """Query Legistar API for matters matching data center keywords."""
         api_base = self.config["oh_columbus_legistar_api"]
-        keywords = [
-            "data center", "water service", "cooling", "utility agreement",
-            "water supply", "gallons", "consumptive",
-        ]
+        keywords = self.config.get("search_keywords", [])
         count = 0
         seen_ids = set()
 
@@ -76,6 +73,14 @@ class ColumbusLegistarScraper(BaseScraper):
                     title = matter.get("MatterTitle", "")
                     file_num = matter.get("MatterFile", "")
 
+                    # Get the first attachment URL for document_url provenance
+                    first_att_url = None
+                    for att in attachments:
+                        att_url = att.get("MatterAttachmentHyperlink", "")
+                        if att_url:
+                            first_att_url = att_url
+                            break
+
                     yield {
                         "title": f"{file_num}: {title}",
                         "url": f"https://columbus.legistar.com/LegislationDetail.aspx?ID={matter_id}",
@@ -85,6 +90,8 @@ class ColumbusLegistarScraper(BaseScraper):
                         "id": f"legistar-{matter_id}",
                         "matter_id": matter_id,
                         "attachments": attachments,
+                        "match_term": f"Legistar API: substringof('{keyword}',MatterTitle)",
+                        "document_url": first_att_url,
                     }
                     count += 1
 

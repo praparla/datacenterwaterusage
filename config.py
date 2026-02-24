@@ -53,11 +53,15 @@ CONFIG = {
     ],
 
     # Known data center companies for entity matching
+    # NOTE: Short names like "AWS", "Meta", "T5" need word-boundary matching
+    # to avoid false positives (e.g. "LAWSON" matching "AWS").
+    # Use utils.matching.is_facility_match() for all facility name checks.
     "known_companies": [
         "Amazon", "AWS", "Microsoft", "Azure", "Google", "Meta", "Facebook",
         "QTS", "Equinix", "Digital Realty", "CyrusOne", "Vantage",
         "CloudHQ", "Iron Mountain", "CoreSite", "DataBank", "T5",
         "Compass Datacenters", "EdgeCore", "Stream Data Centers",
         "Aligned", "Stack Infrastructure", "Prime Data Centers",
+        "Vadata", "Vadata Inc",
     ],
 }

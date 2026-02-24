@@ -109,7 +109,10 @@ class BaseScraper(abc.ABC):
             document_title=meta.get("title", ""),
             document_date=date_val,
             source_url=meta.get("url", ""),
+            document_url=meta.get("document_url") or meta.get("pdf_url"),
             local_file_path=local_path,
             source_portal=self.source,
             permit_number=meta.get("permit_number"),
+            match_term=meta.get("match_term"),
+            matched_company=meta.get("matched_company"),
         )

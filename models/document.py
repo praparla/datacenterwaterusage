@@ -31,6 +31,9 @@ class DocumentRecord:
     extracted_quote: Optional[str] = None
     local_file_path: Optional[str] = None
     permit_number: Optional[str] = None
+    match_term: Optional[str] = None
+    matched_company: Optional[str] = None
+    document_url: Optional[str] = None
     keyword_matches: list[str] = field(default_factory=list)
     relevance_score: float = 0.0
     scraped_at: datetime = field(default_factory=datetime.utcnow)
@@ -45,9 +48,12 @@ class DocumentRecord:
             "extracted_water_metric": self.extracted_water_metric or "",
             "extracted_quote": (self.extracted_quote or "")[:500],
             "source_url": self.source_url,
+            "document_url": self.document_url or "",
             "local_file_path": self.local_file_path or "",
             "source_portal": self.source_portal.value,
             "permit_number": self.permit_number or "",
+            "match_term": self.match_term or "",
+            "matched_company": self.matched_company or "",
             "keyword_matches": "; ".join(self.keyword_matches),
             "relevance_score": f"{self.relevance_score:.2f}",
             "scraped_at": self.scraped_at.isoformat(),

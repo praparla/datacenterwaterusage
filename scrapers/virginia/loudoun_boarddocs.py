@@ -73,14 +73,15 @@ class LoudounBoardDocsScraper(BaseScraper):
                             break
 
                         # Check relevance of agenda item
-                        title = item.get("title", "").lower()
-                        search_terms = [
-                            "water", "data center", "reclaimed", "agreement",
-                            "utility", "cooling", "service",
-                        ]
-                        relevant = any(term in title for term in search_terms)
+                        item_title = item.get("title", "").lower()
+                        search_terms = self.config.get("search_keywords", [])
+                        matched_kw = next(
+                            (kw for kw in search_terms if kw.lower() in item_title),
+                            None,
+                        )
 
-                        if relevant or item.get("has_pdf"):
+                        if matched_kw or item.get("has_pdf"):
+                            reason = f"agenda item matched: '{matched_kw}'" if matched_kw else "PDF attachment"
                             meta = {
                                 "title": f"{meeting.get('title', 'Meeting')} - {item.get('title', '')}",
                                 "url": meeting_url,
@@ -89,6 +90,7 @@ class LoudounBoardDocsScraper(BaseScraper):
                                 "state": "VA",
                                 "agency": "Loudoun Water",
                                 "id": f"boarddocs-{meeting.get('id', '')}-{item.get('id', count)}",
+                                "match_term": reason,
                             }
                             yield meta
                             count += 1

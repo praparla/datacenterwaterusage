@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from models.document import DocumentSource
 from scrapers.base import BaseScraper
 from utils.http_client import RateLimitedClient
+from utils.matching import get_match_reason
 from extractors.excel_extractor import ExcelExtractor
 
 
@@ -39,7 +40,7 @@ class DEQVPDESExcelScraper(BaseScraper):
         rows = extractor.extract_rows(excel_path)
         self.logger.info("excel_rows_loaded", total=len(rows))
 
-        known_companies = [c.upper() for c in self.config.get("known_companies", [])]
+        known_companies = self.config.get("known_companies", [])
         count = 0
 
         for row in rows:
@@ -51,14 +52,8 @@ class DEQVPDESExcelScraper(BaseScraper):
             if not fac_name:
                 continue
 
-            fac_upper = fac_name.upper()
-            matched = any(company in fac_upper for company in known_companies)
-
-            # Also check for generic "data center" in the name
-            if not matched and "DATA CENTER" in fac_upper:
-                matched = True
-
-            if matched:
+            match_reason = get_match_reason(fac_name, known_companies)
+            if match_reason:
                 permit_num = str(row.get("Permit Number", row.get("VAP_PMT_NO", ""))).strip()
                 yield {
                     "url": f"{self.config['va_deq_vpdes_page']}#permit-{permit_num}",
@@ -70,6 +65,9 @@ class DEQVPDESExcelScraper(BaseScraper):
                     "facility_name": fac_name,
                     "id": f"vpdes-excel-{permit_num}",
                     "raw_row": row,
+                    "match_term": f"facility name matched: {match_reason}",
+                    "matched_company": match_reason if match_reason != "data center" else None,
+                    "document_url": self.config["va_deq_vpdes_page"],
                 }
                 count += 1
 

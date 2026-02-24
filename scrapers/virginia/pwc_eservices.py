@@ -100,18 +100,21 @@ class PWCEServicesScraper(BaseScraper):
                         continue
 
                     text_lower = text.lower()
-                    relevant = any(
-                        term in text_lower
-                        for term in ["data center", "utility", "water", "zoning", "permit"]
+                    search_terms = self.config.get("search_keywords", [])
+                    matched_kw = next(
+                        (kw for kw in search_terms if kw.lower() in text_lower),
+                        None,
                     )
 
-                    if href.lower().endswith(".pdf") or relevant:
+                    if href.lower().endswith(".pdf") or matched_kw:
+                        reason = f"link text matched: '{matched_kw}'" if matched_kw else "PDF link"
                         full_url = urljoin(self.BASE_URL, href)
                         entries.append({
                             "title": text[:300],
                             "url": full_url,
                             "pdf_url": full_url if href.endswith(".pdf") else None,
                             "date": None,
+                            "match_term": reason,
                         })
 
             except Exception as e:
@@ -163,6 +166,7 @@ class PWCEServicesScraper(BaseScraper):
                                 "url": full_url,
                                 "pdf_url": full_url if href.endswith(".pdf") else None,
                                 "date": None,
+                                "match_term": "PWC eServices search: 'data center'",
                             })
 
             await page.close()

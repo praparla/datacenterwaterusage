@@ -123,15 +123,23 @@ class DEQPublicNoticesScraper(BaseScraper):
                         "url": full_url,
                         "pdf_url": full_url,
                         "date": None,
+                        "match_term": "PDF on DEQ public notices page",
                     })
                 # Collect links that mention permits or water
-                elif any(term in text.lower() for term in ["permit", "vpdes", "discharge", "water"]):
-                    notices.append({
-                        "title": text,
-                        "url": full_url,
-                        "pdf_url": None,
-                        "date": None,
-                    })
+                else:
+                    search_terms = ["permit", "vpdes", "discharge", "water"]
+                    matched_kw = next(
+                        (kw for kw in search_terms if kw in text.lower()),
+                        None,
+                    )
+                    if matched_kw:
+                        notices.append({
+                            "title": text,
+                            "url": full_url,
+                            "pdf_url": None,
+                            "date": None,
+                            "match_term": f"link text matched: '{matched_kw}'",
+                        })
             except Exception:
                 continue
 

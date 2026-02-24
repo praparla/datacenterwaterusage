@@ -98,6 +98,7 @@ class ColumbusUtilitiesScraper(BaseScraper):
                             "url": full_url,
                             "pdf_url": full_url,
                             "date": None,
+                            "match_term": "PDF on Columbus Utilities Board page",
                         })
 
                 # Also check DataTables JSON source if present
@@ -135,6 +136,7 @@ class ColumbusUtilitiesScraper(BaseScraper):
                         "url": full_url,
                         "pdf_url": full_url,
                         "date": None,
+                        "match_term": "PDF on Columbus Utilities Board page (Playwright)",
                     })
 
             await page.close()
