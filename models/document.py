@@ -16,6 +16,7 @@ class DocumentSource(Enum):
     OH_COLUMBUS_LEGISTAR = "oh_columbus_legistar"
     OH_COLUMBUS_UTILITIES = "oh_columbus_utilities"
     OH_NEW_ALBANY = "oh_new_albany"
+    EPA_ECHO_DMR = "epa_echo_dmr"
 
 
 @dataclass

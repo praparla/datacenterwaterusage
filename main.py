@@ -42,10 +42,13 @@ SCRAPERS = {
     "oh_columbus_legistar": ("scrapers.ohio.columbus_legistar", "ColumbusLegistarScraper"),
     "oh_columbus_utilities": ("scrapers.ohio.columbus_utilities", "ColumbusUtilitiesScraper"),
     "oh_new_albany": ("scrapers.ohio.new_albany", "NewAlbanyScraper"),
+    # Federal
+    "epa_echo": ("scrapers.epa_echo_dmr", "EPAEchoDMRScraper"),
 }
 
 VA_SCRAPERS = [k for k in SCRAPERS if k.startswith("va_")]
 OH_SCRAPERS = [k for k in SCRAPERS if k.startswith("oh_")]
+FED_SCRAPERS = [k for k in SCRAPERS if k.startswith("epa_")]
 
 
 def _load_scraper_class(module_path: str, class_name: str):
@@ -53,7 +56,7 @@ def _load_scraper_class(module_path: str, class_name: str):
     return getattr(mod, class_name)
 
 
-def _resolve_scrapers(scraper_names, all_va, all_oh, run_all) -> list[str]:
+def _resolve_scrapers(scraper_names, all_va, all_oh, all_fed, run_all) -> list[str]:
     if run_all:
         return list(SCRAPERS.keys())
     to_run = list(scraper_names) if scraper_names else []
@@ -61,6 +64,8 @@ def _resolve_scrapers(scraper_names, all_va, all_oh, run_all) -> list[str]:
         to_run.extend(VA_SCRAPERS)
     if all_oh:
         to_run.extend(OH_SCRAPERS)
+    if all_fed:
+        to_run.extend(FED_SCRAPERS)
     # Deduplicate while preserving order
     seen = set()
     result = []
@@ -151,20 +156,21 @@ async def run_pipeline(scraper_keys: list[str], limit: int | None, headless: boo
 @click.option("--scraper", "-s", multiple=True, help="Scraper(s) to run by key name")
 @click.option("--all-va", is_flag=True, help="Run all Virginia scrapers")
 @click.option("--all-oh", is_flag=True, help="Run all Ohio scrapers")
+@click.option("--all-fed", is_flag=True, help="Run all federal scrapers (EPA ECHO)")
 @click.option("--all", "run_all", is_flag=True, help="Run all scrapers")
 @click.option("--limit", "-l", type=int, default=None, help="Max documents per scraper (for testing)")
 @click.option("--headless/--no-headless", default=True, help="Run browser in headless mode")
 @click.option("--log-level", default="INFO", help="Log level (DEBUG, INFO, WARNING, ERROR)")
-def main(scraper, all_va, all_oh, run_all, limit, headless, log_level):
+def main(scraper, all_va, all_oh, all_fed, run_all, limit, headless, log_level):
     """Data Center Water Use Tracker — scraping pipeline CLI."""
     setup_logging(log_level)
     logger = structlog.get_logger()
 
-    to_run = _resolve_scrapers(scraper, all_va, all_oh, run_all)
+    to_run = _resolve_scrapers(scraper, all_va, all_oh, all_fed, run_all)
 
     if not to_run:
         logger.error("no_scrapers_selected")
-        click.echo("No scrapers selected. Use --scraper, --all-va, --all-oh, or --all.")
+        click.echo("No scrapers selected. Use --scraper, --all-va, --all-oh, --all-fed, or --all.")
         click.echo(f"Available scrapers: {', '.join(SCRAPERS.keys())}")
         return
 

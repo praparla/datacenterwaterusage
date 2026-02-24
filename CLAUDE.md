@@ -31,11 +31,14 @@ Python-based scraping and data extraction pipeline that finds documents related 
 - The `source_portal` enum identifies which scraper produced the record.
 
 ### 5. Git Discipline
-- Initialize git at project start. Commit at natural checkpoints:
+- Commit **often** at natural checkpoints — small, focused commits are better than large monolithic ones:
   - After creating the project structure and foundation modules
-  - After each scraper is implemented and tested
-  - After the extraction pipeline is working end-to-end
-  - After fixing bugs or errors
+  - After each new module or scraper is implemented
+  - After writing or updating tests for a module
+  - After fixing a bug or resolving a failing test
+  - After refactoring or cleanup
+  - After updating documentation (CLAUDE.md, errors.md, backlog.md)
+- Don't let work accumulate — if you've made a meaningful change, commit it.
 - Write descriptive commit messages that explain *what* and *why*.
 - Don't commit `data/downloads/` (large binary files) — add to `.gitignore`. Do commit `data/output/` samples if they're small.
 
@@ -44,15 +47,28 @@ Python-based scraping and data extraction pipeline that finds documents related 
   - Date/time
   - Which scraper/module failed
   - Error message and traceback summary
+  - **Root cause classification**: Is this a **code bug** (logic error in production code) or a **test bug** (incorrect assertion, wrong test setup, stale fixture)?
   - Resolution status (open / fixed)
-- When an error is fixed or a failing test passes, update the corresponding entry in `errors.md` with the resolution.
+- When an error is fixed or a failing test passes, **immediately** update the corresponding entry in `errors.md` with:
+  - What the fix was
+  - Whether it was a code fix or a test fix
+  - The commit that resolved it (if applicable)
 - Use structured logging (`structlog`) in code for runtime errors. `errors.md` is the human-readable audit trail.
+- After every bug fix, check whether the fix needs a new test or an updated test to prevent regression.
 
 ### 7. Testing and Validation
-- Write tests alongside code, not as an afterthought. Each extractor module should have corresponding tests in `tests/`.
+- **Write tests alongside code, not as an afterthought.** Every new module, function, or bug fix should include corresponding tests.
+  - New module → add `tests/test_<module>.py` in the same session.
+  - Bug fix → add a regression test that would have caught the bug.
+  - New extractor or scraper → test with sample data.
+- Each extractor, storage module, and utility should have corresponding tests in `tests/`.
 - Test against real sample data when possible (save a sample PDF or Excel snippet in `tests/fixtures/`).
-- When a test fails, document it in `errors.md`. When it's fixed, update the entry.
+- When a test fails:
+  1. Determine root cause: **code bug** vs. **test bug** (bad assertion, stale fixture, wrong expectation).
+  2. Document in `errors.md` with the classification.
+  3. Fix the appropriate side (code or test), then update `errors.md` with the resolution.
 - Validate output data: check that required fields are non-empty, dates parse correctly, URLs are valid.
+- Run the full test suite before committing to catch regressions early.
 
 ### 8. Backlog Management
 - When ideas come up for improvements, new scrapers, or enhancements, add them to `backlog.md` immediately.
@@ -91,16 +107,24 @@ Python-based scraping and data extraction pipeline that finds documents related 
 - `data/state/` — SQLite database for scraper state
 
 ### Scraper Status
-| Scraper | Portal | Status |
-|---------|--------|--------|
-| deq_vpdes_excel | VA DEQ VPDES Excel | Not started |
-| deq_arcgis | VA DEQ ArcGIS REST | Not started |
-| deq_public_notices | VA DEQ Public Notices | Not started |
-| deq_peep_tableau | VA DEQ PEEP/VPT | Not started |
-| loudoun_boarddocs | Loudoun Water BoardDocs | Not started |
-| loudoun_highbond | Loudoun Water Highbond | Not started |
-| pwc_eservices | Prince William County | Not started |
-| epa_edocument | Ohio EPA eDocument | Not started |
-| columbus_legistar | Columbus Legistar API | Not started |
-| columbus_utilities | Columbus Utilities Board | Not started |
-| new_albany | New Albany Council | Not started |
+| Scraper | Portal | Status | Notes |
+|---------|--------|--------|-------|
+| deq_vpdes_excel | VA DEQ VPDES Excel | Built, blocked by WAF | 403 from DEQ site — see errors.md |
+| deq_arcgis | VA DEQ ArcGIS REST | Working | Permit metadata only — no flow data in ArcGIS layers |
+| deq_public_notices | VA DEQ Public Notices | Built | Playwright-based, needs testing |
+| deq_peep_tableau | VA DEQ PEEP/VPT | Built | Power BI scraper, needs testing |
+| loudoun_boarddocs | Loudoun Water BoardDocs | Built | BoardDocs JS rendering |
+| loudoun_highbond | Loudoun Water Highbond | Built | Needs testing |
+| pwc_eservices | Prince William County | Built | Dual HTTP + Playwright |
+| epa_edocument | Ohio EPA eDocument | Built | ASP.NET WebForms, needs testing |
+| columbus_legistar | Columbus Legistar API | Working | Municipal IT data center — no water data |
+| columbus_utilities | Columbus Utilities Board | Built | Needs testing |
+| new_albany | New Albany Council | Built | HTTP + Playwright fallback |
+| **epa_echo** | **EPA ECHO DMR** | **Working** | **Primary water data source — flow MGD from treatment plants** |
+
+### Key Architecture Decision: Water Data Source Strategy
+Data centers discharge cooling water to municipal sewer systems, not directly to surface water.
+Individual data center VPDES permits (e.g., Amazon's VAR052xxx) are stormwater-only permits
+with no flow measurements. To track actual water usage, the pipeline monitors receiving
+wastewater treatment plants via EPA ECHO DMR data. Target permits are configured in
+`config.py` under `epa_echo_target_permits`.

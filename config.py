@@ -30,6 +30,22 @@ CONFIG = {
     # Prince William County
     "va_pwc_eservices": "https://eservice.pwcgov.org/",
 
+    # EPA ECHO (federal Enforcement & Compliance History Online — DMR data)
+    "epa_echo_effluent_api": "https://echodata.epa.gov/echo/eff_rest_services.get_effluent",
+    "epa_echo_dfr_api": "https://echodata.epa.gov/echo/dfr_rest_services.get_water_quality",
+    "epa_echo_permits_api": "https://echodata.epa.gov/echo/cwa_rest_services.get_facility_info",
+
+    # Key wastewater treatment plant permits that receive data center cooling water
+    # These facilities serve areas with major data center clusters
+    "epa_echo_target_permits": [
+        # Virginia — Loudoun County / Northern VA data center corridor
+        "VA0091383",  # Broad Run Water Reclamation Facility (Loudoun Water)
+        "VA0024988",  # Henrico County Water Reclamation Facility
+        # Ohio — Columbus area
+        "OH0024651",  # Columbus Southerly WWTP
+        "OH0028061",  # Columbus Jackson Pike WWTP
+    ],
+
     # Ohio EPA
     "oh_epa_edocument": "https://edocpub.epa.ohio.gov/publicportal/edochome.aspx",
 
