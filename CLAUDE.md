@@ -128,3 +128,27 @@ Individual data center VPDES permits (e.g., Amazon's VAR052xxx) are stormwater-o
 with no flow measurements. To track actual water usage, the pipeline monitors receiving
 wastewater treatment plants via EPA ECHO DMR data. Target permits are configured in
 `config.py` under `epa_echo_target_permits`.
+
+### Data Source Tiers (identified Feb 2026)
+
+**Tier 1 — Direct water metrics (highest value):**
+- EPA ECHO DMR flow data from receiving WWTPs (currently implemented)
+- Loudoun Water ACFRs — aggregate data center water sales (~1.6B gal/yr in 2023)
+- Ohio EPA General Permit OHD000001 — once finalized, requires DMR from data centers directly
+- Prince William Water Industrial User Survey — data center ERU allocations
+- ODNR Water Withdrawal Facility Viewer — annual facility-level withdrawal volumes
+
+**Tier 2 — Permit metadata and facility discovery:**
+- EPA ECHO NAICS 518210 search — discover data center regulatory footprints
+- EPA FRS cross-referencing — link facilities across 90+ EPA databases
+- Ohio EPA ArcGIS NPDES permits — searchable by SIC code 7374
+- Virginia DEQ ArcGIS VWP layers 192/193 — water withdrawal permits
+
+**Tier 3 — Context and projections:**
+- Central Ohio Regional Water Study (2025) — demand projections to 2050
+- JLARC Data Centers in Virginia report (2024)
+- EIA Form 923 — power plant cooling water for indirect footprint
+- USGS county-level water use estimates (every 5 years)
+- Virginia SB 553 (2026) — if enacted, mandates monthly data center water reporting
+
+See `backlog.md` for detailed scraper plans and sample prompts for each source.
