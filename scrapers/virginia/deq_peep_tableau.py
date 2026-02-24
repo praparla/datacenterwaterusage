@@ -4,6 +4,8 @@ Attempts to use the Tableau dashboard at PEEP for permit search data.
 Falls back to the VPT Power BI portal at permits.virginia.gov if needed.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import AsyncGenerator, Optional
 from urllib.parse import urljoin

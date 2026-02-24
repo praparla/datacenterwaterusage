@@ -4,6 +4,8 @@ BoardDocs uses a Lotus Notes/Domino backend (Board.nsf) with heavy JavaScript re
 Requires Playwright for navigation and interaction.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import AsyncGenerator, Optional
 from urllib.parse import urljoin

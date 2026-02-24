@@ -5,6 +5,8 @@ filters for data-center-related facilities by name.
 No browser automation needed — pure REST API.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import AsyncGenerator, Optional
 

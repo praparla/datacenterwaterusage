@@ -5,6 +5,8 @@ If public access is available, scrape board documents. Otherwise fall back
 to the BoardDocs legacy scraper.
 """
 
+from __future__ import annotations
+
 from typing import AsyncGenerator, Optional
 from urllib.parse import urljoin
 

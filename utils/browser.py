@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 from utils.user_agents import get_random_user_agent

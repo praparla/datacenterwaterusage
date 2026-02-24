@@ -8,6 +8,8 @@ Usage:
     python main.py --scraper va_deq_excel --limit 5 # Test with 5 docs
 """
 
+from __future__ import annotations
+
 import asyncio
 import importlib
 

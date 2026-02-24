@@ -4,6 +4,8 @@ Uses Playwright to navigate the public notices page,
 extract notice entries, and download linked PDF documents.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import AsyncGenerator, Optional
 from urllib.parse import urljoin

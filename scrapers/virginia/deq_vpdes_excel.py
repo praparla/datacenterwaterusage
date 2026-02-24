@@ -4,6 +4,8 @@ Downloads the Excel file listing all current VPDES Individual Permits,
 then filters for rows matching known data center companies.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import AsyncGenerator, Optional
 from urllib.parse import urljoin
