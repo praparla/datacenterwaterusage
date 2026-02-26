@@ -12,11 +12,16 @@ class DocumentSource(Enum):
     VA_LOUDOUN_BOARDDOCS = "va_loudoun_boarddocs"
     VA_LOUDOUN_HIGHBOND = "va_loudoun_highbond"
     VA_PWC_ESERVICES = "va_pwc_eservices"
+    VA_LOUDOUN_ACFR = "va_loudoun_acfr"
+    VA_FAIRFAX_WATER = "va_fairfax_water"
     OH_EPA_EDOCUMENT = "oh_epa_edocument"
     OH_COLUMBUS_LEGISTAR = "oh_columbus_legistar"
     OH_COLUMBUS_UTILITIES = "oh_columbus_utilities"
     OH_NEW_ALBANY = "oh_new_albany"
+    OH_EPA_NPDES_ARCGIS = "oh_epa_npdes_arcgis"
+    OH_ODNR_WATER_WITHDRAWAL = "oh_odnr_water_withdrawal"
     EPA_ECHO_DMR = "epa_echo_dmr"
+    OH_CENTRAL_WATER_STUDY = "oh_central_water_study"
 
 
 @dataclass
