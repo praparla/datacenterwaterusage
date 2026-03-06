@@ -67,7 +67,7 @@ class BaseScraper(abc.ABC):
 
         try:
             async for meta in self.discover(limit=limit):
-                doc_id = meta.get("url") or meta.get("id", "")
+                doc_id = meta.get("id") or meta.get("url") or ""
 
                 # Skip already-processed docs (resumability)
                 if await self.state_manager.is_fetched(self.name, doc_id):

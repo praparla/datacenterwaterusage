@@ -36,14 +36,21 @@ SCRAPERS = {
     "va_deq_peep": ("scrapers.virginia.deq_peep_tableau", "DEQPEEPScraper"),
     "va_loudoun_boarddocs": ("scrapers.virginia.loudoun_boarddocs", "LoudounBoardDocsScraper"),
     "va_loudoun_highbond": ("scrapers.virginia.loudoun_highbond", "LoudounHighbondScraper"),
+    "va_loudoun_acfr": ("scrapers.virginia.loudoun_acfr", "LoudounACFRScraper"),
+    "va_fairfax_water": ("scrapers.virginia.fairfax_water", "FairfaxWaterScraper"),
     "va_pwc": ("scrapers.virginia.pwc_eservices", "PWCEServicesScraper"),
     # Ohio
     "oh_epa": ("scrapers.ohio.epa_edocument", "OhioEPAScraper"),
     "oh_columbus_legistar": ("scrapers.ohio.columbus_legistar", "ColumbusLegistarScraper"),
     "oh_columbus_utilities": ("scrapers.ohio.columbus_utilities", "ColumbusUtilitiesScraper"),
     "oh_new_albany": ("scrapers.ohio.new_albany", "NewAlbanyScraper"),
+    "oh_epa_npdes_arcgis": ("scrapers.ohio.epa_npdes_arcgis", "OhioEPANPDESArcGISScraper"),
+    "oh_odnr_withdrawal": ("scrapers.ohio.odnr_water_withdrawal", "ODNRWaterWithdrawalScraper"),
     # Federal
     "epa_echo": ("scrapers.epa_echo_dmr", "EPAEchoDMRScraper"),
+    "oh_central_water_study": (
+        "scrapers.federal.central_ohio_water_study", "CentralOhioWaterStudyScraper"
+    ),
 }
 
 VA_SCRAPERS = [k for k in SCRAPERS if k.startswith("va_")]

@@ -14,6 +14,32 @@ Format:
 
 ---
 
+### [2026-02-26] test_pdf_extractor failures — broken cryptography/pdfminer chain in dev environment
+- **Module**: tests/test_pdf_extractor.py
+- **Error**: `pyo3_runtime.PanicException: Python API call failed` inside `cryptography/exceptions.py`, triggered by `pdfminer → pdfplumber` import chain. Stderr shows `ModuleNotFoundError: No module named '_cffi_backend'`.
+- **Context**: Discovered when running full test suite after adding new scrapers (2026-02-26). All 4 failing tests call `pdfplumber` which imports `pdfminer` which imports `cryptography`, which panics due to conflicting `cffi`/Rust bindings between system and pip-installed packages.
+- **Root cause**: Infrastructure issue — `pip install pdfplumber` installed a newer version of `cryptography` that conflicts with the system's `python3-cryptography` package. The Rust extension `_cffi_backend` cannot load because `cffi` is missing from the pip environment.
+- **Affected tests**: `test_extract_text_nonexistent_file`, `test_extract_text_empty_file`, `test_extract_tables_nonexistent_file`, `test_extract_tables_returns_list`.
+- **Not a regression**: These tests were already failing before the 2026-02-26 changes. All 140 other tests pass cleanly.
+- **Resolution**: Open. Fix by creating a virtualenv with consistent package versions (`pip install -r requirements.txt` in a fresh venv), or use `--ignore=tests/test_pdf_extractor.py` in CI until the environment is resolved.
+
+### [2026-02-26] BaseScraper.run() used `url` as doc_id — wrong for multi-doc page scrapers
+- **Module**: scrapers/base.py, scrapers/virginia/fairfax_water.py, scrapers/virginia/loudoun_acfr.py
+- **Error**: `AssertionError: assert 1 == 0` in `test_fairfax_water.py::test_run_skips_already_fetched`. The scraper returned 1 result despite the record being pre-marked as fetched.
+- **Context**: BaseScraper.run() used `meta.get("url") or meta.get("id", "")` as the state key. For page-based scrapers (Loudoun ACFR, Fairfax Water), `url` is the listing page URL (same for all records from that page). When 10 annual reports come from one page, all would share the same doc_id and only the first would be scraped on re-runs.
+- **Root cause**: Code bug in `scrapers/base.py` — priority order wrong. The `id` field is always more specific than the page `url`.
+- **Fix**: Changed to `doc_id = meta.get("id") or meta.get("url") or ""`. One-line change; `id` (specific per document) now takes priority over `url` (page-level).
+- **Commit**: See 2026-02-26 commit.
+- **Resolution**: Fixed.
+
+### [2026-02-26] `_YEAR_RE` with `\b` didn't match year in `ACFR2024Final.pdf` style filenames
+- **Module**: scrapers/virginia/loudoun_acfr.py, scrapers/virginia/fairfax_water.py
+- **Error**: `AssertionError: assert None == '2024'` in `test_loudoun_acfr.py::test_year_from_url_path`.
+- **Context**: The regex `r"\b(20\d{2})\b"` requires word boundaries. In `"ACFR2024Final"`, the year `2024` is flanked by letters (`R` and `F`) which are word characters, so `\b` does not fire.
+- **Root cause**: Test bug masked a code issue. The regex was too strict for realistic filenames where years are concatenated with text.
+- **Fix**: Changed regex to `r"(20\d{2})(?!\d)"` — no leading boundary required, negative lookahead prevents matching inside larger numbers. Applied to both scrapers.
+- **Resolution**: Fixed.
+
 ### [2026-02-23] test_gpd_match failed — "cooling operations" not in cooling keyword group
 - **Module**: tests/test_keyword_matcher.py
 - **Error**: `AssertionError: assert 'cooling' in {'water_volume': ['gallons per day']}` — test expected "cooling operations" to match the `cooling` keyword group, but the group only contains "cooling tower", "evaporative cooling", and "chiller".
