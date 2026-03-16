@@ -94,7 +94,8 @@ Python-based scraping and data extraction pipeline that finds documents related 
 - **State/resumability**: aiosqlite
 - **Logging**: structlog
 - **CLI**: click
-- **Testing**: pytest + pytest-asyncio
+- **Dashboard**: streamlit + plotly (Phase 1), Observable Framework planned (Phase 2)
+- **Testing**: pytest + pytest-asyncio (218 tests)
 
 ### Key Directories
 - `scrapers/` — one module per government portal, organized by state
@@ -121,6 +122,9 @@ Python-based scraping and data extraction pipeline that finds documents related 
 | columbus_utilities | Columbus Utilities Board | Built | Needs testing |
 | new_albany | New Albany Council | Built | HTTP + Playwright fallback |
 | **epa_echo** | **EPA ECHO DMR** | **Working** | **Primary water data source — flow MGD from treatment plants** |
+| **epa_echo_naics** | **EPA ECHO NAICS** | **Working** | **Facility discovery — NAICS 518210 in VA/OH** |
+| **loudoun_acfr** | **Loudoun Water ACFR** | **Built** | **Aggregate data center water sales (~1.6B gal/yr)** |
+| **oh_epa_general_permit** | **Ohio EPA OHD000001** | **Built** | **Tracks first-ever DC wastewater general permit** |
 
 ### Key Architecture Decision: Water Data Source Strategy
 Data centers discharge cooling water to municipal sewer systems, not directly to surface water.

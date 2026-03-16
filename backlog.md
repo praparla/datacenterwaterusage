@@ -6,6 +6,25 @@ Last reviewed: 2026-02-24. Data status notes added after verifying live sources.
 
 ---
 
+## Completed (March 2026)
+
+### ✅ EPA ECHO NAICS Facility Discovery (Federal)
+**Status**: Built — `scrapers/epa_echo_naics.py` (18 tests)
+
+### ✅ Ohio EPA Data Center General Permit Tracker (OHD000001)
+**Status**: Built — `scrapers/ohio/epa_general_permit.py` (20 tests)
+
+### ✅ Loudoun Water ACFR Scraper (Virginia)
+**Status**: Built — `scrapers/virginia/loudoun_acfr.py` (26 tests)
+
+### ✅ Expand EPA ECHO DMR Target Permits
+**Status**: Done — added Newark WWTP (OH0020257), SW Licking (OH0047627), Alexandria Renew (VA0025160), Noman Cole (VA0025364) to config.py
+
+### ✅ Dashboard / Visualization
+**Status**: Built — `dashboard.py` Streamlit dashboard with flow time series, permit limit overlays, seasonal heatmap, cross-filtering, data download (20 tests). Run with `streamlit run dashboard.py`.
+
+---
+
 ## High Priority
 
 ### EPA ECHO NAICS Facility Discovery (Federal)
@@ -189,11 +208,18 @@ As we scrape multiple portals, the same document or data point may appear from d
 **Sample prompt:**
 > Build a deduplication module that identifies duplicate or near-duplicate records in the output CSV/JSON. Match on permit_number, source_url, and fuzzy-match on document_title. When duplicates are found, merge them into a single record keeping the most complete data from each source. Add a `sources` field that lists all portals where the record was found.
 
-### Dashboard / Visualization
-Build a simple web UI or notebook to visualize the extracted data.
+### Dashboard / Visualization — Phase 2: Observable Framework
+Phase 1 Streamlit dashboard is built (see `dashboard.py`). Phase 2 migrates the public-facing version to Observable Framework for static deployment, better data storytelling, and a scrollytelling landing page.
+
+**UX research findings (March 2026):**
+- California Drinking Water Tool: two-portal design (community vs. policy audience), GIS overlays with demographic data
+- PJM LMP Map: contour heat map with 5-minute auto-refresh, brushable time selection
+- EPA ECHO: Qlik-based cross-filtering, effluent charts with permit limit overlays
+- WoodMac Lens: screen-on-map-then-benchmark workflow, scenario modeling
+- Recommended tech: Observable Framework (static site, D3.js/deck.gl, pre-computed data from Python pipeline)
 
 **Sample prompt:**
-> Create a Streamlit dashboard that reads the results.csv and displays: (1) a map of data center locations with water usage markers, (2) a table of all records sortable/filterable by state, company, and water volume, (3) a timeline of permits and agreements, (4) a flow trend chart for each monitored WWTP showing MGD over time against permit limits. Use plotly for charts.
+> Migrate the Streamlit dashboard to Observable Framework with a scrollytelling landing page (3-4 key findings with human-relatable comparisons like "equivalent to X households"), an interactive explorer with Leaflet map and cross-filtering, and facility detail pages with effluent-chart-style time series. Deploy as a static site on GitHub Pages. Use D3.js/Observable Plot for charts and deck.gl for the map.
 
 ---
 
@@ -224,17 +250,33 @@ Automate periodic re-scraping.
 **Sample prompt:**
 > Set up scheduled scraping using either cron jobs or Apache Airflow. Create a schedule that re-runs all scrapers weekly, with EPA ECHO DMR scraper running monthly (aligned with DMR reporting periods). Include error alerting if a scheduled run fails.
 
-### Additional States
-Expand beyond Virginia and Ohio to other data center hub states.
+### Additional States (Option E)
+Expand beyond Virginia and Ohio to other data center hub states. Texas, Oregon, and Georgia are the next biggest data center markets. Lower priority since the VA/OH pipeline isn't fully exploited yet, but this is the path to a national-scale dataset.
+
+**Target states and agencies:**
+- Texas: TCEQ permits, TCEQ ArcGIS data, PUC water availability studies
+- Oregon: DEQ permits, Portland Water Bureau data
+- Georgia: EPD permits, Atlanta watershed data
 
 **Sample prompt:**
-> Research and add scrapers for data center water usage documents in Texas (TCEQ permits), Oregon (DEQ), and Georgia (EPD). Follow the same architecture as existing scrapers — identify the relevant portals, determine the technology stack, and implement using the BaseScraper pattern.
+> Research and add scrapers for data center water usage documents in Texas (TCEQ permits), Oregon (DEQ), and Georgia (EPD). Follow the same architecture as existing scrapers — identify the relevant portals, determine the technology stack, and implement using the BaseScraper pattern. Start with Texas TCEQ which has the most accessible ArcGIS-based permit data.
 
-### FOIA Request Templates
-Create template FOIA requests targeting local water utilities for facility-level data center water consumption records. Reference the Botetourt County court ruling (2024) where a judge ruled water usage data is NOT proprietary.
+### FOIA Request Templates (Option F)
+Create template FOIA requests targeting local water utilities for facility-level data center water consumption records. This is the most direct path to facility-specific data, especially given the Botetourt County court ruling (2024) where a judge ruled water usage data is NOT proprietary.
+
+**Key targets:**
+- Loudoun Water — facility-level commercial/industrial water delivery records (highest priority — they sell ~1.6B gal/yr to data centers but only publish aggregate figures)
+- Prince William Water — same approach, 56 data centers in the county
+- Western Virginia Water Authority — Google data center water contract records (citing the Botetourt County court precedent)
+- Fairfax Water — wholesale supply data to Loudoun Water (indirect metric)
+
+**Legal context:**
+- Virginia FOIA (Section 2.2-3700) requires disclosure unless exempt
+- 25 of 31 Virginia localities with data centers have signed NDAs — FOIA can challenge these
+- Botetourt County precedent (2024): water usage data is public record, NOT proprietary trade secret
 
 **Sample prompt:**
-> Create a `docs/foia_templates/` directory with template FOIA request letters for: (1) Loudoun Water — facility-level commercial/industrial water delivery records, (2) Prince William Water — same, (3) Western Virginia Water Authority — Google data center water contract records (citing the Botetourt County court precedent). Include guidance on Virginia FOIA law (Section 2.2-3700) and how to counter proprietary information exemption claims.
+> Create a `docs/foia_templates/` directory with template FOIA request letters for: (1) Loudoun Water — facility-level commercial/industrial water delivery records, (2) Prince William Water — same, (3) Western Virginia Water Authority — Google data center water contract records (citing the Botetourt County court precedent). Include guidance on Virginia FOIA law (Section 2.2-3700) and how to counter proprietary information exemption claims. Include sample follow-up templates if initial request is denied.
 
 ---
 
