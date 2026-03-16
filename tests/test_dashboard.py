@@ -1,9 +1,9 @@
-"""Tests for dashboard data processing functions.
+"""Tests for dashboard data processing and device detection.
 
 Tests cover:
 - Flow MGD extraction from metric strings
 - Source type classification
-- Data loading and cleaning
+- Device detection and chart configuration
 - Edge cases for empty/malformed data
 """
 
@@ -16,8 +16,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 
-# Import dashboard helper functions directly
 from dashboard import _extract_flow_mgd, _classify_source
+from utils.device import (
+    MOBILE_MAX,
+    TABLET_MAX,
+    DeviceInfo,
+    DeviceType,
+    get_chart_config,
+)
 
 
 # --- Tests for _extract_flow_mgd ---
@@ -125,3 +131,66 @@ class TestFlowDataValidation:
             assert 0 < result < 1000, (
                 f"Flow {result} MGD from '{metric_str}' is outside reasonable range"
             )
+
+
+# --- Tests for device detection ---
+
+
+class TestDeviceDetection:
+    """Test device type classification and breakpoints."""
+
+    def test_breakpoint_values(self):
+        assert MOBILE_MAX == 768
+        assert TABLET_MAX == 1024
+
+    def test_device_info_construction(self):
+        info = DeviceInfo(DeviceType.MOBILE, 375)
+        assert info.device_type == DeviceType.MOBILE
+        assert info.viewport_width == 375
+
+    def test_device_info_none_width(self):
+        info = DeviceInfo(DeviceType.DESKTOP, None)
+        assert info.device_type == DeviceType.DESKTOP
+        assert info.viewport_width is None
+
+    def test_device_type_is_string_enum(self):
+        assert DeviceType.MOBILE == "mobile"
+        assert DeviceType.TABLET == "tablet"
+        assert DeviceType.DESKTOP == "desktop"
+
+
+class TestChartConfig:
+    """Test per-device chart configuration."""
+
+    def test_all_device_types_have_config(self):
+        for dt in DeviceType:
+            cfg = get_chart_config(dt)
+            assert isinstance(cfg, dict)
+
+    def test_mobile_charts_shorter(self):
+        mobile = get_chart_config(DeviceType.MOBILE)
+        desktop = get_chart_config(DeviceType.DESKTOP)
+        assert mobile["flow_height"] < desktop["flow_height"]
+        assert mobile["heatmap_height"] < desktop["heatmap_height"]
+
+    def test_mobile_hides_legend(self):
+        assert get_chart_config(DeviceType.MOBILE)["show_legend"] is False
+        assert get_chart_config(DeviceType.DESKTOP)["show_legend"] is True
+
+    def test_config_has_required_keys(self):
+        required = [
+            "flow_height", "heatmap_height", "source_height", "table_height",
+            "font_size", "title_font_size", "legend_y", "marker_size",
+            "line_width", "show_legend", "hovermode", "margin",
+        ]
+        for dt in DeviceType:
+            cfg = get_chart_config(dt)
+            for key in required:
+                assert key in cfg, f"Missing '{key}' in {dt} config"
+
+    def test_tablet_between_mobile_and_desktop(self):
+        mobile = get_chart_config(DeviceType.MOBILE)
+        tablet = get_chart_config(DeviceType.TABLET)
+        desktop = get_chart_config(DeviceType.DESKTOP)
+        assert mobile["flow_height"] < tablet["flow_height"] < desktop["flow_height"]
+        assert mobile["font_size"] < tablet["font_size"] < desktop["font_size"]

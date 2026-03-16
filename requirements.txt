@@ -29,8 +29,9 @@ structlog>=23.2.0
 click>=8.1.0
 
 # Dashboard
-streamlit>=1.30.0
+streamlit>=1.33.0
 plotly>=5.18.0
+streamlit-js-eval>=0.1.7
 
 # Testing
 pytest>=7.4.0
