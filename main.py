@@ -39,6 +39,8 @@ SCRAPERS = {
     "va_loudoun_acfr": ("scrapers.virginia.loudoun_acfr", "LoudounACFRScraper"),
     "va_fairfax_water": ("scrapers.virginia.fairfax_water", "FairfaxWaterScraper"),
     "va_pwc": ("scrapers.virginia.pwc_eservices", "PWCEServicesScraper"),
+    "va_pwc_ius": ("scrapers.virginia.pwc_ius", "PWCIUSScraper"),
+    "va_deq_vwp": ("scrapers.virginia.deq_vwp", "DEQVWPScraper"),
     # Ohio
     "oh_epa": ("scrapers.ohio.epa_edocument", "OhioEPAScraper"),
     "oh_columbus_legistar": ("scrapers.ohio.columbus_legistar", "ColumbusLegistarScraper"),
@@ -46,8 +48,12 @@ SCRAPERS = {
     "oh_new_albany": ("scrapers.ohio.new_albany", "NewAlbanyScraper"),
     "oh_epa_npdes_arcgis": ("scrapers.ohio.epa_npdes_arcgis", "OhioEPANPDESArcGISScraper"),
     "oh_odnr_withdrawal": ("scrapers.ohio.odnr_water_withdrawal", "ODNRWaterWithdrawalScraper"),
+    "oh_epa_general_permit": (
+        "scrapers.ohio.epa_general_permit", "OhioEPAGeneralPermitScraper"
+    ),
     # Federal
     "epa_echo": ("scrapers.epa_echo_dmr", "EPAEchoDMRScraper"),
+    "epa_echo_naics": ("scrapers.epa_echo_naics", "EPAEchoNAICSScraper"),
     "oh_central_water_study": (
         "scrapers.federal.central_ohio_water_study", "CentralOhioWaterStudyScraper"
     ),

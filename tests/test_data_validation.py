@@ -218,6 +218,8 @@ class TestDocumentSourceCompleteness:
         assert hasattr(DocumentSource, "VA_LOUDOUN_ACFR")
         assert hasattr(DocumentSource, "EPA_ECHO_NAICS")
         assert hasattr(DocumentSource, "OH_EPA_GENERAL_PERMIT")
+        assert hasattr(DocumentSource, "VA_PWC_IUS")
+        assert hasattr(DocumentSource, "VA_DEQ_VWP")
 
     def test_source_values_are_lowercase(self):
         """All source values should be lowercase with underscores."""

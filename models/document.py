@@ -23,6 +23,8 @@ class DocumentSource(Enum):
     EPA_ECHO_DMR = "epa_echo_dmr"
     EPA_ECHO_NAICS = "epa_echo_naics"
     OH_EPA_GENERAL_PERMIT = "oh_epa_general_permit"
+    VA_PWC_IUS = "va_pwc_ius"
+    VA_DEQ_VWP = "va_deq_vwp"
     OH_CENTRAL_WATER_STUDY = "oh_central_water_study"
 
 
