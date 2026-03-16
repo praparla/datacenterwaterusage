@@ -257,12 +257,10 @@ class EPAEchoNAICSScraper(BaseScraper):
             return None
 
         try:
-            from utils.matching import is_facility_match
+            from utils.matching import get_match_reason
 
             known = self.config.get("known_companies", [])
-            for company in known:
-                if is_facility_match(facility_name, company):
-                    return company
+            return get_match_reason(facility_name, known)
         except ImportError:
             pass
 
