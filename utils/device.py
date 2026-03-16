@@ -256,6 +256,36 @@ _RESPONSIVE_CSS = """
     font-size: 0.8rem;
     color: #555;
 }
+/* --- Timeline styling --- */
+.timeline-event {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+}
+.timeline-date {
+    min-width: 3rem;
+    font-weight: 700;
+    color: #08519c;
+    font-size: 0.9rem;
+}
+.timeline-body {
+    flex: 1;
+}
+.timeline-badge {
+    display: inline-block;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    margin-right: 0.3rem;
+    text-transform: uppercase;
+}
+.timeline-detail {
+    color: #555;
+    font-size: 0.9rem;
+}
 </style>
 """
 

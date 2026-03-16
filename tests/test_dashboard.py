@@ -24,6 +24,9 @@ from dashboard import (
     compute_household_equivalent,
     CONTEXT_DATA,
     PER_QUERY_ESTIMATES,
+    SCORECARD_DATA,
+    TRANSPARENCY_GAPS,
+    TIMELINE_EVENTS,
 )
 from utils.device import (
     MOBILE_MAX,
@@ -306,3 +309,120 @@ class TestPerQueryEstimates:
         sorted_est = sorted(PER_QUERY_ESTIMATES, key=lambda e: e["ml"])
         for i in range(len(sorted_est) - 1):
             assert sorted_est[i]["ml"] <= sorted_est[i + 1]["ml"]
+
+
+# --- Tests for Transparency Scorecard data ---
+
+
+class TestScorecardData:
+    """Validate the scorecard reference data."""
+
+    def test_at_least_ten_sources(self):
+        assert len(SCORECARD_DATA) >= 10
+
+    def test_all_entries_have_required_fields(self):
+        required = ["source", "scraper", "disclosure", "geo_resolution", "freshness", "confidence", "notes"]
+        for entry in SCORECARD_DATA:
+            for field in required:
+                assert field in entry, f"Missing '{field}' in {entry.get('source', '?')}"
+
+    def test_valid_disclosure_types(self):
+        valid = {"mandated", "voluntary", "inferred"}
+        for entry in SCORECARD_DATA:
+            assert entry["disclosure"] in valid, (
+                f"{entry['source']}: invalid disclosure '{entry['disclosure']}'"
+            )
+
+    def test_valid_confidence_levels(self):
+        valid = {"high", "medium", "low"}
+        for entry in SCORECARD_DATA:
+            assert entry["confidence"] in valid, (
+                f"{entry['source']}: invalid confidence '{entry['confidence']}'"
+            )
+
+    def test_valid_geo_resolution(self):
+        valid = {"facility", "county", "state", "national"}
+        for entry in SCORECARD_DATA:
+            assert entry["geo_resolution"] in valid, (
+                f"{entry['source']}: invalid resolution '{entry['geo_resolution']}'"
+            )
+
+    def test_valid_freshness(self):
+        valid = {"monthly", "quarterly", "annual", "one-time", "irregular"}
+        for entry in SCORECARD_DATA:
+            assert entry["freshness"] in valid, (
+                f"{entry['source']}: invalid freshness '{entry['freshness']}'"
+            )
+
+    def test_echo_dmr_is_high_confidence(self):
+        echo = [s for s in SCORECARD_DATA if s["scraper"] == "epa_echo_dmr"]
+        assert len(echo) == 1
+        assert echo[0]["confidence"] == "high"
+
+    def test_no_duplicate_scrapers(self):
+        scrapers = [s["scraper"] for s in SCORECARD_DATA]
+        assert len(scrapers) == len(set(scrapers))
+
+
+class TestTransparencyGaps:
+    """Validate transparency gap data."""
+
+    def test_at_least_three_gaps(self):
+        assert len(TRANSPARENCY_GAPS) >= 3
+
+    def test_all_gaps_have_required_fields(self):
+        for gap in TRANSPARENCY_GAPS:
+            assert "gap" in gap
+            assert "impact" in gap
+            assert "status" in gap
+
+    def test_sb553_included(self):
+        sb553 = [g for g in TRANSPARENCY_GAPS if "SB 553" in g["gap"]]
+        assert len(sb553) == 1
+
+    def test_nda_gap_included(self):
+        nda = [g for g in TRANSPARENCY_GAPS if "NDA" in g["gap"]]
+        assert len(nda) == 1
+
+
+# --- Tests for Timeline data ---
+
+
+class TestTimelineData:
+    """Validate timeline event data."""
+
+    def test_at_least_five_events(self):
+        assert len(TIMELINE_EVENTS) >= 5
+
+    def test_all_events_have_required_fields(self):
+        required = ["date", "year", "label", "category", "detail"]
+        for event in TIMELINE_EVENTS:
+            for field in required:
+                assert field in event, f"Missing '{field}' in {event.get('label', '?')}"
+
+    def test_valid_categories(self):
+        valid = {"policy", "data", "research", "legal"}
+        for event in TIMELINE_EVENTS:
+            assert event["category"] in valid, (
+                f"{event['label']}: invalid category '{event['category']}'"
+            )
+
+    def test_dates_are_chronological_when_sorted(self):
+        sorted_events = sorted(TIMELINE_EVENTS, key=lambda e: e["date"])
+        for i in range(len(sorted_events) - 1):
+            assert sorted_events[i]["date"] <= sorted_events[i + 1]["date"]
+
+    def test_year_matches_date(self):
+        for event in TIMELINE_EVENTS:
+            year_from_date = int(event["date"][:4])
+            assert event["year"] == year_from_date, (
+                f"{event['label']}: year {event['year']} doesn't match date {event['date']}"
+            )
+
+    def test_sb553_vote_included(self):
+        sb553 = [e for e in TIMELINE_EVENTS if "SB 553" in e["label"]]
+        assert len(sb553) >= 1
+
+    def test_multiple_categories_represented(self):
+        categories = {e["category"] for e in TIMELINE_EVENTS}
+        assert len(categories) >= 3

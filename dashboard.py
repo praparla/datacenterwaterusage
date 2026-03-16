@@ -475,6 +475,215 @@ CONTEXT_DATA = {
     },
 }
 
+# Transparency Scorecard — metadata about each data source in the pipeline.
+# disclosure_type: "mandated" (required by law), "voluntary" (published willingly),
+#                  "inferred" (derived from other data)
+# geo_resolution: "facility", "county", "state", "national"
+# freshness: "monthly", "quarterly", "annual", "one-time", "irregular"
+# confidence: "high" (direct measurement), "medium" (official but indirect),
+#             "low" (estimated or projected)
+SCORECARD_DATA = [
+    {
+        "source": "EPA ECHO DMR",
+        "scraper": "epa_echo_dmr",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "monthly",
+        "confidence": "high",
+        "notes": "Federal NPDES discharge monitoring reports from WWTPs",
+    },
+    {
+        "source": "Loudoun Water ACFR",
+        "scraper": "va_loudoun_acfr",
+        "disclosure": "mandated",
+        "geo_resolution": "county",
+        "freshness": "annual",
+        "confidence": "high",
+        "notes": "Aggregate data center water sales (~1.6B gal/yr)",
+    },
+    {
+        "source": "EPA ECHO NAICS",
+        "scraper": "epa_echo_naics",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "quarterly",
+        "confidence": "medium",
+        "notes": "Facility discovery by NAICS 518210; no water volumes",
+    },
+    {
+        "source": "PWC Industrial User Survey",
+        "scraper": "va_pwc_ius",
+        "disclosure": "voluntary",
+        "geo_resolution": "county",
+        "freshness": "annual",
+        "confidence": "medium",
+        "notes": "ERU allocations for 56 data centers; GPD estimated from ERU",
+    },
+    {
+        "source": "VA DEQ ArcGIS",
+        "scraper": "va_deq_arcgis",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "irregular",
+        "confidence": "medium",
+        "notes": "Permit metadata only — no flow measurements",
+    },
+    {
+        "source": "VA DEQ VWP",
+        "scraper": "va_deq_vwp",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "irregular",
+        "confidence": "medium",
+        "notes": "Water withdrawal permits (ArcGIS layers 192/193)",
+    },
+    {
+        "source": "Ohio EPA General Permit",
+        "scraper": "oh_epa_general_permit",
+        "disclosure": "mandated",
+        "geo_resolution": "state",
+        "freshness": "one-time",
+        "confidence": "medium",
+        "notes": "OHD000001 — first DC wastewater permit; pending finalization",
+    },
+    {
+        "source": "Ohio EPA NPDES ArcGIS",
+        "scraper": "oh_epa_npdes_arcgis",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "quarterly",
+        "confidence": "medium",
+        "notes": "SIC 7374 permit discovery; nightly updates",
+    },
+    {
+        "source": "ODNR Water Withdrawal",
+        "scraper": "oh_odnr_water_withdrawal",
+        "disclosure": "mandated",
+        "geo_resolution": "facility",
+        "freshness": "annual",
+        "confidence": "medium",
+        "notes": "Historical withdrawal volumes in central OH counties",
+    },
+    {
+        "source": "Central Ohio Water Study",
+        "scraper": "oh_central_water_study",
+        "disclosure": "voluntary",
+        "geo_resolution": "county",
+        "freshness": "one-time",
+        "confidence": "low",
+        "notes": "Demand projections: 40 MGD (2030) to 90 MGD (2050)",
+    },
+    {
+        "source": "Fairfax Water Reports",
+        "scraper": "va_fairfax_water",
+        "disclosure": "mandated",
+        "geo_resolution": "county",
+        "freshness": "annual",
+        "confidence": "medium",
+        "notes": "Wholesale supplier to Loudoun Water (~18 MGD)",
+    },
+]
+
+# Known data transparency gaps — NDAs, vetoed bills, missing data.
+TRANSPARENCY_GAPS = [
+    {
+        "gap": "25 of 31 VA localities signed data center NDAs",
+        "impact": "Facility-level water data blocked by non-disclosure agreements",
+        "status": "ongoing",
+    },
+    {
+        "gap": "Virginia SB 553 — monthly water reporting mandate",
+        "impact": "Would require water providers to report DC consumption monthly",
+        "status": "in committee (House Ag/Natural Resources, Feb 2026)",
+    },
+    {
+        "gap": "California AB 93 — vetoed Oct 2024",
+        "impact": "Would have required annual water use disclosure by data centers",
+        "status": "vetoed by Gov. Newsom",
+    },
+    {
+        "gap": "No federal facility-level DC water reporting",
+        "impact": "EPA tracks WWTPs, not individual data center connections",
+        "status": "no legislation pending",
+    },
+]
+
+# Timeline of key disclosure and policy events.
+TIMELINE_EVENTS = [
+    {
+        "date": "2020-01-01",
+        "year": 2020,
+        "label": "USGS Water Use Estimates Published",
+        "category": "data",
+        "detail": "Latest county-level water use data (every 5 years). "
+        "Too coarse for facility tracking but useful for regional context.",
+    },
+    {
+        "date": "2023-06-01",
+        "year": 2023,
+        "label": "UC Riverside: 'Making AI Less Thirsty'",
+        "category": "research",
+        "detail": "First major study quantifying AI water footprint. "
+        "Estimated 0.5L per 10-50 ChatGPT queries.",
+    },
+    {
+        "date": "2023-10-01",
+        "year": 2023,
+        "label": "Loudoun Water ACFR: 1.6B gal to DCs",
+        "category": "data",
+        "detail": "Annual report reveals data centers consumed 1.635 billion gallons "
+        "(899M potable + 736M reclaimed) — 15% of utility sales.",
+    },
+    {
+        "date": "2024-05-01",
+        "year": 2024,
+        "label": "Botetourt County Court Ruling",
+        "category": "legal",
+        "detail": "Judge rules water usage data is NOT a proprietary trade secret. "
+        "Key precedent for FOIA requests.",
+    },
+    {
+        "date": "2024-10-12",
+        "year": 2024,
+        "label": "California AB 93 Vetoed",
+        "category": "policy",
+        "detail": "Gov. Newsom vetoes bill that would have required annual "
+        "data center water use disclosure.",
+    },
+    {
+        "date": "2024-12-01",
+        "year": 2024,
+        "label": "JLARC: Data Centers in Virginia",
+        "category": "research",
+        "detail": "Virginia legislative study finds DC water use 'sustainable but growing.' "
+        "Recommends localities require water use estimates for new DCs.",
+    },
+    {
+        "date": "2025-01-16",
+        "year": 2025,
+        "label": "Ohio EPA OHD000001 Comment Period Closes",
+        "category": "policy",
+        "detail": "Public comment closes on first-ever data center wastewater "
+        "general permit. Will require DMR reporting from DCs directly.",
+    },
+    {
+        "date": "2025-03-01",
+        "year": 2025,
+        "label": "Central Ohio Regional Water Study",
+        "category": "data",
+        "detail": "Projects industrial water demand growing to 40 MGD by 2030, "
+        "90 MGD by 2050. Intel needs 6 MGD alone.",
+    },
+    {
+        "date": "2026-02-09",
+        "year": 2026,
+        "label": "Virginia SB 553 Passes Senate 25-15",
+        "category": "policy",
+        "detail": "Monthly DC water reporting bill passes Senate. "
+        "Sponsor: Sen. Srinivasan (D-Loudoun). Now in House committee.",
+    },
+]
+
 # Per-query water estimates — sourced from published research.
 PER_QUERY_ESTIMATES = [
     {
@@ -596,6 +805,107 @@ fundamentally different accounting methods.</p>
                 f"- **{est['ml']} mL** — {est['label']}  \n"
                 f"  _{est['note']}_ | Source: {est['source']}"
             )
+
+
+def render_transparency_scorecard():
+    """Render the Transparency Scorecard panel — rates each data source."""
+    st.subheader("Transparency Scorecard")
+
+    st.markdown(
+        "How transparent is data center water reporting? "
+        "Each source rated by disclosure type, geographic detail, and confidence."
+    )
+
+    # Build a dataframe for display
+    rows = []
+    for src in SCORECARD_DATA:
+        confidence_icon = {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low",
+        }.get(src["confidence"], src["confidence"])
+
+        disclosure_label = {
+            "mandated": "Mandated",
+            "voluntary": "Voluntary",
+            "inferred": "Inferred",
+        }.get(src["disclosure"], src["disclosure"])
+
+        rows.append(
+            {
+                "Source": src["source"],
+                "Disclosure": disclosure_label,
+                "Resolution": src["geo_resolution"].title(),
+                "Frequency": src["freshness"].title(),
+                "Confidence": confidence_icon,
+                "Notes": src["notes"],
+            }
+        )
+
+    scorecard_df = pd.DataFrame(rows)
+    st.dataframe(
+        scorecard_df,
+        use_container_width=True,
+        hide_index=True,
+        height=min(400, 35 * len(rows) + 40),
+    )
+
+    # Transparency gaps
+    st.markdown("**Known Gaps & Barriers:**")
+    for gap in TRANSPARENCY_GAPS:
+        status_color = {
+            "ongoing": COLORS["warning"],
+            "vetoed by Gov. Newsom": COLORS["danger"],
+            "no legislation pending": COLORS["text"],
+        }
+        color = status_color.get(gap["status"], COLORS["secondary"])
+        st.markdown(
+            f"- **{gap['gap']}** — {gap['impact']}  \n"
+            f"  _Status: {gap['status']}_"
+        )
+
+
+def render_timeline():
+    """Render the Policy & Disclosure Timeline panel."""
+    st.subheader("Policy & Disclosure Timeline")
+
+    st.markdown(
+        "Key events shaping data center water transparency — "
+        "the data landscape is changing rapidly."
+    )
+
+    category_colors = {
+        "policy": COLORS["danger"],
+        "data": COLORS["primary"],
+        "research": COLORS["success"],
+        "legal": COLORS["warning"],
+    }
+
+    category_labels = {
+        "policy": "Policy",
+        "data": "Data Release",
+        "research": "Research",
+        "legal": "Legal",
+    }
+
+    events = sorted(TIMELINE_EVENTS, key=lambda e: e["date"])
+
+    for event in events:
+        cat = event["category"]
+        color = category_colors.get(cat, COLORS["text"])
+        cat_label = category_labels.get(cat, cat.title())
+
+        st.markdown(
+            f"""<div class="timeline-event">
+<div class="timeline-date">{event['year']}</div>
+<div class="timeline-body">
+<span class="timeline-badge" style="background:{color}">{cat_label}</span>
+<strong>{event['label']}</strong><br>
+<span class="timeline-detail">{event['detail']}</span>
+</div>
+</div>""",
+            unsafe_allow_html=True,
+        )
 
 
 def render_data_freshness(df: pd.DataFrame):
@@ -724,6 +1034,22 @@ def main():
     if not is_mobile:
         with st.expander("Seasonal Patterns"):
             render_seasonal_heatmap(filtered_df, cfg)
+
+    # Transparency Scorecard
+    if is_mobile:
+        with st.expander("Transparency Scorecard"):
+            render_transparency_scorecard()
+    else:
+        with st.expander("Transparency Scorecard", expanded=False):
+            render_transparency_scorecard()
+
+    # Policy & Disclosure Timeline
+    if is_mobile:
+        with st.expander("Policy & Disclosure Timeline"):
+            render_timeline()
+    else:
+        with st.expander("Policy & Disclosure Timeline", expanded=False):
+            render_timeline()
 
     # Per-query explainer — always available
     if is_mobile:
