@@ -95,7 +95,7 @@ Python-based scraping and data extraction pipeline that finds documents related 
 - **Logging**: structlog
 - **CLI**: click
 - **Dashboard**: streamlit + plotly (Phase 1), Observable Framework planned (Phase 2)
-- **Testing**: pytest + pytest-asyncio (218 tests)
+- **Testing**: pytest + pytest-asyncio (294 tests)
 
 ### Key Directories
 - `scrapers/` — one module per government portal, organized by state
@@ -125,6 +125,12 @@ Python-based scraping and data extraction pipeline that finds documents related 
 | **epa_echo_naics** | **EPA ECHO NAICS** | **Working** | **Facility discovery — NAICS 518210 in VA/OH** |
 | **loudoun_acfr** | **Loudoun Water ACFR** | **Built** | **Aggregate data center water sales (~1.6B gal/yr)** |
 | **oh_epa_general_permit** | **Ohio EPA OHD000001** | **Built** | **Tracks first-ever DC wastewater general permit** |
+| **fairfax_water** | **Fairfax Water** | **Built** | **Upstream wholesale supplier to Loudoun Water (~18 MGD)** |
+| **central_ohio_study** | **Central Ohio Water Study** | **Built** | **Demand projections: 40 MGD (2030) → 90 MGD (2050)** |
+| **oh_epa_npdes_arcgis** | **Ohio EPA NPDES ArcGIS** | **Built** | **SIC 7374 permit discovery, nightly updates** |
+| **odnr_withdrawal** | **ODNR Water Withdrawal** | **Built** | **Historical annual withdrawal volumes, central OH** |
+| **pwc_ius** | **Prince William Water IUS** | **Built** | **Data center ERU allocations (56 DCs, 2.7% avg demand)** |
+| **deq_vwp** | **Virginia DEQ VWP** | **Built** | **Water withdrawal permits (ArcGIS layers 192/193)** |
 
 ### Key Architecture Decision: Water Data Source Strategy
 Data centers discharge cooling water to municipal sewer systems, not directly to surface water.

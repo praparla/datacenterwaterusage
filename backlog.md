@@ -2,7 +2,7 @@
 
 Items are ordered by priority (high / medium / low). Each includes a sample prompt for generating an implementation plan.
 
-Last reviewed: 2026-02-24. Data status notes added after verifying live sources.
+Last reviewed: 2026-03-16.
 
 ---
 
@@ -18,135 +18,32 @@ Last reviewed: 2026-02-24. Data status notes added after verifying live sources.
 **Status**: Built — `scrapers/virginia/loudoun_acfr.py` (26 tests)
 
 ### ✅ Expand EPA ECHO DMR Target Permits
-**Status**: Done — added Newark WWTP (OH0020257), SW Licking (OH0047627), Alexandria Renew (VA0025160), Noman Cole (VA0025364) to config.py
+**Status**: Done — 8 target permits in config.py (VA0091383, VA0024988, VA0026301, VA0026271, OH0024651, OH0028061, OH0020494, OH0068071)
 
-### ✅ Dashboard / Visualization
+### ✅ Dashboard / Visualization (Phase 1)
 **Status**: Built — `dashboard.py` Streamlit dashboard with flow time series, permit limit overlays, seasonal heatmap, cross-filtering, data download (20 tests). Run with `streamlit run dashboard.py`.
+
+### ✅ Fairfax Water Financial Reports (Virginia)
+**Status**: Built — `scrapers/virginia/fairfax_water.py` (tests in test_fairfax_water.py). Downloads ACFR/PAFR PDFs, extracts wholesale delivery volumes.
+
+### ✅ Central Ohio Regional Water Study Analysis
+**Status**: Built — `scrapers/federal/central_ohio_water_study.py`. Downloads and processes the 3 study PDFs.
+
+### ✅ Ohio EPA ArcGIS NPDES Permits
+**Status**: Built — `scrapers/ohio/epa_npdes_arcgis.py` (tests in test_ohio_epa_npdes.py). Queries Ohio EPA Open Data for NPDES permits by SIC 7374.
+
+### ✅ ODNR Water Withdrawal Facility Viewer (Ohio)
+**Status**: Built — `scrapers/ohio/odnr_water_withdrawal.py` (tests in test_odnr_water_withdrawal.py). Queries ArcGIS FeatureServer for withdrawal registrations in central Ohio counties.
+
+### ✅ Prince William Water Industrial User Survey (Virginia)
+**Status**: Built — `scrapers/virginia/pwc_ius.py` (tests in test_pwc_ius.py). Downloads IUS PDFs, extracts ERU allocations, GPD/MGD values, data center counts. ERU→GPD conversion (1 ERU = 400 GPD).
+
+### ✅ Virginia DEQ Water Withdrawal Permits (VWP)
+**Status**: Built — `scrapers/virginia/deq_vwp.py` (tests in test_deq_vwp.py). Queries ArcGIS EDMA MapServer layers 192 (individual) and 193 (general) for water withdrawal permits in Northern Virginia counties.
 
 ---
 
 ## High Priority
-
-### EPA ECHO NAICS Facility Discovery (Federal)
-Use EPA ECHO API to find all data center facilities (NAICS 518210) with any CWA/NPDES regulatory footprint in Virginia and Ohio. This gives geographic coordinates to map facilities to WWTP service areas and builds a registry of known data center locations.
-
-**API endpoint:** `https://ofmpub.epa.gov/echo/echo_rest_services.get_facilities?p_naic=518210&p_med=CWA&output=JSON`
-
-**Data status:** API confirmed live. Caution: ECHO was last updated October 19, 2025, and has not been updated since due to federal funding; facility data may be stale. Bulk ICIS-NPDES downloads available as an alternative at echo.epa.gov/tools/data-downloads.
-
-**Sample prompt:**
-> Add a new scraper `scrapers/federal/epa_echo_naics.py` that queries the EPA ECHO REST API for all facilities with NAICS code 518210 (Data Processing/Hosting) in Virginia and Ohio. Extract facility name, FRS Registry ID, coordinates, permit numbers, and compliance status. Store results in the standard DocumentRecord format. Use the existing httpx client with rate limiting. This will serve as a facility registry to cross-reference against WWTP service areas.
-
-### Ohio EPA Data Center General Permit Tracker (OHD000001)
-Ohio EPA has drafted the first-ever general NPDES permit specifically for data center wastewater discharges (cooling tower blowdown, non-contact cooling water). Once finalized, data centers that obtain coverage will report flow volumes, pH, TDS, chlorine, temperature via DMR. This is a direct pipeline of data center water discharge data.
-
-**Key documents:**
-- Draft permit: `https://dam.assets.ohio.gov/image/upload/epa.ohio.gov/Portals/35/permits/Data_Centers/OHD000001_Draft.pdf`
-- Fact sheet: `https://dam.assets.ohio.gov/image/upload/epa.ohio.gov/Portals/35/permits/Data_Centers/OHD000001_Draft.fs.pdf`
-- General permits list: `https://www.epa.state.oh.us/dsw/permits/gplist`
-
-**Data status:** Draft permit PDF confirmed available. Public hearing held December 17, 2025; public comment period closed January 16, 2026. Effective date is TBD — permit not yet finalized as of February 2026. Ohio hosts 200+ data centers (more than any other Great Lakes state). Once finalized, facilities must submit DMRs by the 20th of each month. NOI/facility coverage list will only be scrapeable post-finalization.
-
-**Sample prompt:**
-> Build a scraper `scrapers/ohio/epa_general_permit.py` that monitors the Ohio EPA general permits list for OHD000001 (data center wastewater). Once finalized, scrape the list of facilities that file Notices of Intent (NOIs) for coverage. Extract facility names, locations, and permit IDs. These facilities will then be added as targets for the existing `epa_echo_dmr.py` scraper to pull their discharge monitoring data. Also download and extract text from the draft permit PDF to document the monitoring parameters (flow, pH, TDS, chlorine, temperature, oil/grease, TSS).
-
-### Loudoun Water ACFR Scraper (Virginia)
-Loudoun Water's Annual Comprehensive Financial Reports contain statistical tables on water sales by category (residential, commercial, reclaimed). In 2023, Loudoun Water sold ~2.46 MGD potable + ~2.1 MGD reclaimed to data centers, totaling ~1.6 billion gallons/year (250% increase from 2019). This is the best publicly available aggregate data on data center water consumption.
-
-**URL:** `https://www.loudounwater.org/about/comprehensive-annual-financial-reports`
-
-**Data status:** Confirmed. 2023 ACFR PDF directly downloadable. Data centers consumed 899 million gallons of potable water in 2023 (up 250% in 4 years) plus ~736 million gallons of reclaimed water in 2024 — totaling ~1.6 billion gallons/year. Data center alley currently consumes ~2% of Potomac River Basin water, rising to 8% in summer; projected 33% by 2050. Reports available for 2020–2024.
-
-**Sample prompt:**
-> Build a scraper `scrapers/virginia/loudoun_acfr.py` that downloads Loudoun Water ACFR PDFs from their website. Use pdfplumber to extract statistical tables on water sales volume by customer class (residential, commercial, reclaimed). Parse out annual water delivery volumes, number of connections by type, and reclaimed water program statistics. Store time-series data in results with source attribution. Also scrape the reclaimed water program page at `https://www.loudounwater.org/commercial-customers/reclaimed-water-program` for current delivery volumes.
-
-### Prince William Water Industrial User Survey (Virginia)
-The March 2024 Industrial User Survey (IUS) lists industrial customers including data centers, with ERU (Equivalent Residential Unit) capacity allocations. Data centers consumed ~2.7% of average daily demand and ~5.3% of max daily demand in 2024. Prince William County has 56 data centers.
-
-**URL:** `https://princewilliamwater.org/sites/default/files/IUS_March%202024.pdf`
-
-**Data status:** Confirmed. PDF publicly available. 56 data centers in Prince William County; data centers consumed 2.7% of average daily demand and 5.3% of max daily demand in 2024. Each ERU = 400 gallons/day max (10,000 gallons/month). High Demand Charges apply above ERU thresholds.
-
-**Sample prompt:**
-> Build a scraper `scrapers/virginia/pwc_ius.py` that downloads the Prince William Water Industrial User Survey PDF. Extract the list of industrial customers (names, ERU allocations, water usage categories). Cross-reference with known data center operators. Also scrape the commercial customer page at `https://princewilliamwater.org/our-customers/commercial-customers` for rate structure and industrial customer definitions. Each ERU = 10,000 gallons/month capacity.
-
-### Virginia DEQ Water Withdrawal Reporting (Virginia)
-Virginia requires annual reporting of all withdrawals >10,000 GPD. In 2023, 1,174 facilities reported. Data centers that have their own wells would appear here. Municipal utilities serving data centers (Loudoun Water, Fairfax Water) report their aggregate withdrawals.
-
-**Access:**
-- myDEQ Portal (requires account): `https://portal.deq.virginia.gov/`
-- VWP permits via ArcGIS: Layer 192 (individual) and Layer 193 (general) on DEQ EDMA MapServer
-- Annual Water Resources Report: `https://www.deq.virginia.gov/get-involved/about-us/deq-reports`
-
-**Data status:** Partial. ArcGIS VWP layers 192 and 193 are publicly queryable (no account needed). Facility-level withdrawal data on myDEQ portal requires account creation. Annual Water Resources Report PDFs are publicly available.
-
-**Sample prompt:**
-> Add VWP permit layers to the existing `scrapers/virginia/deq_arcgis.py` scraper. Query ArcGIS EDMA MapServer layers 192 (VWP Individual Permits) and 193 (VWP General Permits) for water withdrawal permits in Northern Virginia counties (Loudoun, Fairfax, Prince William). Extract permittee names, authorized withdrawal amounts, water sources, and permit status. Also build a PDF downloader for the DEQ Annual Water Resources Report to extract statewide withdrawal summaries.
-
-### ODNR Water Withdrawal Facility Viewer (Ohio)
-Ohio requires registration for facilities withdrawing >100,000 GPD. The ODNR ArcGIS-based facility viewer shows historical annual withdrawal volumes per facility. While 97% of data centers use municipal water, this captures the municipal suppliers and any self-supplied facilities.
-
-**URL:** `https://experience.arcgis.com/experience/0605c2eaf8fe458481ac323404b4ab36/page/Water-Withdrawal-Facility-Viewer`
-
-**Data status:** Confirmed live. ArcGIS Experience Builder viewer is active at the stated URL. Displays locations and historical annual water use data for all Ohio facilities withdrawing >100K GPD. A dedicated data request page is also available at the same experience (`/page/Water-Withdrawal-Facility-Data-Request`) for bulk export. Covers Franklin, Licking, and Delaware counties (central Ohio data center cluster).
-
-**Sample prompt:**
-> Build a scraper `scrapers/ohio/odnr_water_withdrawal.py` that queries the ArcGIS FeatureServer backing the ODNR Water Withdrawal Facility Viewer. Find the REST endpoint by inspecting the Experience Builder app's network requests. Query for all registered withdrawal facilities in Franklin County, Licking County, and Delaware County (major Ohio data center areas). Extract facility name, withdrawal volumes by year, water source type, and return flow data. Focus on public water systems serving New Albany, Columbus, and Newark areas.
-
-### Ohio EPA ArcGIS NPDES Permits (Ohio)
-Ohio EPA publishes NPDES permit data on ArcGIS Open Data, updated nightly. Can search by SIC code 7374 (data centers) to find facilities with discharge permits.
-
-**URLs:**
-- Individual permits: `https://data-oepa.opendata.arcgis.com/datasets/npdes-individual-permits`
-- Industrial stormwater: `https://hub.arcgis.com/datasets/oepa::npdes-industrial-storm-water-permits`
-- By county: `http://wwwapp.epa.ohio.gov/dsw/permits/permit_list.php`
-
-**Data status:** Confirmed live. Ohio EPA Open Data portal at data-oepa.opendata.arcgis.com hosts the NPDES Individual Permits dataset (feature service ID `1118cdc038884214ba79a0712b60ece7_0`), updated nightly. OHD000001 draft permit confirms SIC 7374 is the applicable code for data center facilities.
-
-**Sample prompt:**
-> Build a scraper `scrapers/ohio/epa_npdes_arcgis.py` that queries the Ohio EPA ArcGIS Open Data NPDES Individual Permits dataset (feature service ID `1118cdc038884214ba79a0712b60ece7_0`). Filter for SIC code 7374 and/or facilities in Franklin, Licking, and Delaware counties. Extract permit numbers, permittee names, locations, discharge limits, and SIC codes. Also query the Industrial Storm Water Permits layer to identify data centers with stormwater-only permits. Follow the same pattern as `scrapers/virginia/deq_arcgis.py`.
-
-### Expand EPA ECHO DMR Target Permits
-Add more receiving wastewater treatment plants to `config.py` to capture flow data from areas with heavy data center presence.
-
-**New targets to add:**
-- Columbus Southerly WWTP (OH0024651) — receives industrial discharge from Columbus area
-- Jackson Pike WWTP (OH0028061) — Columbus area
-- Newark WWTP — Licking County, near New Albany data center cluster
-- Southwest Licking Community WWTP — directly serves New Albany data centers
-- Additional Loudoun County plants beyond Broad Run
-
-**Data status:** Internal config change — no external URL to verify. ECHO permit lookup is available but has been stale since October 2025 (federal funding issue). Permit numbers for Columbus Southerly and Jackson Pike are listed above; Newark and Southwest Licking permit numbers need verification via ECHO facility search or Ohio EPA permit list.
-
-**Sample prompt:**
-> Research and identify the NPDES permit numbers for wastewater treatment plants receiving discharge from data center areas in Ohio (Columbus Southerly, Jackson Pike, Newark, Southwest Licking) and additional Virginia plants beyond Broad Run. Add these permits to `config.py` under `epa_echo_target_permits`. Run the existing `epa_echo_dmr.py` scraper against the expanded target list to collect flow data. Verify the permit numbers via EPA ECHO facility search.
-
-### Central Ohio Regional Water Study Analysis (elevated from Medium)
-The March 2025 Central Ohio Regional Water Study quantifies data center water demand: industrial demand projected to grow from negligible (2020) to 40 MGD (2030), 70 MGD (2040), 90 MGD (2050). Key context documents with major news coverage.
-
-**URLs:**
-- Overview: `https://dam.assets.ohio.gov/image/upload/epa.ohio.gov/Portals/0/water/CentralWaterStudyOverview.pdf`
-- Licking County detail: `https://dam.assets.ohio.gov/image/upload/epa.ohio.gov/Portals/0/water/LickingWaterStudy.pdf`
-- Pickaway County detail: `https://dam.assets.ohio.gov/image/upload/epa.ohio.gov/Portals/0/water/PickawayWaterStudy.pdf`
-
-**Data status:** Confirmed. PDFs directly available at stated URLs. 15-county study released March 2025 (and covered extensively by US News, CBS, NBC4, 614Now). Projects industrial water demand (data centers + Intel chip plant) growing to >40 MGD by 2030, ~70 MGD by 2040, ~90 MGD by 2050 — a 120% increase 2021–2050. Columbus is building a $1.6B fourth water treatment plant partly to meet data center/Intel demand. Intel committed to 6 MGD for New Albany campus starting ~2030. Drought conditions in Ohio (driest August on record in 2025) add urgency.
-
-**Sample prompt:**
-> Download and extract key data from the Central Ohio Regional Water Study PDFs. Parse the demand projections table (industrial water demand by decade through 2050), current capacity figures, and infrastructure recommendations. Store as reference data in `data/output/reference/` to contextualize the scraper pipeline's flow data against regional projections.
-
-### Fairfax Water Financial Reports (elevated from Medium, Virginia)
-Fairfax Water is the upstream wholesale supplier to Loudoun Water (~18 MGD) and Prince William Water. Changes in wholesale demand reflect regional growth including data centers. Average daily production: 170 MGD, max capacity 375 MGD.
-
-**URL:** `https://www.fairfaxwater.org/about-us` (financial reports section); 2024 report directly at `https://www.fairfaxwater.org/sites/default/files/about_us/2024%20Financial%20Report.pdf`
-
-**Data status:** Confirmed. 2024 Financial Report PDF is publicly available. Key 2024 data: operating revenues increased 3.7% to $226.8 million; retail water sales up 4.8%; wholesale water sales up 2.8%; Loudoun Water purchases ~18 MGD from Fairfax Water (wholesale cost rose 42% from 2021–2024); wholesale customers account for ~47% of total water sales volume. Reports available for multiple years.
-
-**Sample prompt:**
-> Build a scraper `scrapers/virginia/fairfax_water.py` that downloads Fairfax Water's annual financial reports (Popular Annual Financial Report and Comprehensive Financial Report). Extract total water production volumes, wholesale delivery volumes to Loudoun Water and Prince William Water, revenue by customer class, and number of service connections. Track year-over-year trends in wholesale demand as a proxy for data center area growth.
-
----
-
-## Medium Priority
 
 ### EPA FRS Cross-Reference Module (Federal)
 The EPA Facility Registry Service links facilities across 90+ EPA databases. Query FRS for all NAICS 518210 facilities in VA/OH to get FRS Registry IDs, then cross-reference against NPDES, RCRA, TRI, and other programs. API: `https://enviro.epa.gov/enviro/efservice/FRS_NAICS/NAICS_CODE/518210/rows/0:99/JSON`
@@ -165,6 +62,16 @@ Virginia SB 553 (2026 session) would require water providers to report data cent
 
 **Sample prompt:**
 > Build a simple legislative tracker that monitors the status of Virginia SB 553 and related bills (HB 496, HB 591) via the LegiScan API or Virginia LIS website. Alert when bill status changes. If SB 553 is enacted, design a scraper for the new monthly water consumption reports that will be filed with the State Water Control Board.
+
+### Deduplication Engine
+As we scrape multiple portals (now 20+ scrapers), the same document or data point may appear from different sources (e.g., a permit referenced in both DEQ and ECHO). Dedup is critical before the dataset grows larger.
+
+**Sample prompt:**
+> Build a deduplication module that identifies duplicate or near-duplicate records in the output CSV/JSON. Match on permit_number, source_url, and fuzzy-match on document_title. When duplicates are found, merge them into a single record keeping the most complete data from each source. Add a `sources` field that lists all portals where the record was found.
+
+---
+
+## Medium Priority
 
 ### JLARC Data Centers in Virginia Report
 The December 2024 JLARC study found data center water use is sustainable but growing. Contains aggregate statistics, policy recommendations, and analysis of water impact. Reference material.
@@ -201,12 +108,6 @@ Some government PDFs are scanned images with no text layer. pdfplumber and PyMuP
 
 **Sample prompt:**
 > Add OCR support to the PDF extraction pipeline using pytesseract. When both pdfplumber and PyMuPDF return empty/minimal text from a PDF, fall back to OCR. Include preprocessing (deskewing, thresholding) for better accuracy on scanned government documents. Update requirements.txt and add tests with a sample scanned PDF.
-
-### Deduplication Engine
-As we scrape multiple portals, the same document or data point may appear from different sources (e.g., a permit referenced in both DEQ and Loudoun Water minutes).
-
-**Sample prompt:**
-> Build a deduplication module that identifies duplicate or near-duplicate records in the output CSV/JSON. Match on permit_number, source_url, and fuzzy-match on document_title. When duplicates are found, merge them into a single record keeping the most complete data from each source. Add a `sources` field that lists all portals where the record was found.
 
 ### Dashboard / Visualization — Phase 2: Observable Framework
 Phase 1 Streamlit dashboard is built (see `dashboard.py`). Phase 2 migrates the public-facing version to Observable Framework for static deployment, better data storytelling, and a scrollytelling landing page.
@@ -302,5 +203,3 @@ Create template FOIA requests targeting local water utilities for facility-level
 - ODNR Water Withdrawal Facility Viewer has historical annual volumes by facility.
 - Central Ohio Regional Water Study (March 2025) projects industrial water demand growing to >40 MGD by 2030, ~90 MGD by 2050. Intel's New Albany chip campus will need 6 MGD alone starting ~2030. Columbus building $1.6B fourth water treatment plant.
 - New Albany/Licking County is the densest Ohio data center cluster (Google, Meta, Amazon).
-
-See `backlog.md` for detailed scraper plans and sample prompts for each source.
