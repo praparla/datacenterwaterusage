@@ -4,6 +4,8 @@ Tests cover:
 - Flow MGD extraction from metric strings
 - Source type classification
 - Device detection and chart configuration
+- Local context data and household equivalent calculations
+- Per-query estimates data integrity
 - Edge cases for empty/malformed data
 """
 
@@ -16,7 +18,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 
-from dashboard import _extract_flow_mgd, _classify_source
+from dashboard import (
+    _extract_flow_mgd,
+    _classify_source,
+    compute_household_equivalent,
+    CONTEXT_DATA,
+    PER_QUERY_ESTIMATES,
+)
 from utils.device import (
     MOBILE_MAX,
     TABLET_MAX,
@@ -194,3 +202,107 @@ class TestChartConfig:
         desktop = get_chart_config(DeviceType.DESKTOP)
         assert mobile["flow_height"] < tablet["flow_height"] < desktop["flow_height"]
         assert mobile["font_size"] < tablet["font_size"] < desktop["font_size"]
+
+
+# --- Tests for household equivalent calculation ---
+
+
+class TestHouseholdEquivalent:
+    """Test the household-equivalent conversion used in context cards."""
+
+    def test_standard_calculation(self):
+        # 1 billion gallons / (200 GPD * 365) = ~13,699 homes
+        result = compute_household_equivalent(1_000_000_000, gpd=200)
+        assert result == 13698  # int truncation
+
+    def test_loudoun_data(self):
+        """Loudoun ACFR 2023: 1.635B gal should be ~22,000+ homes."""
+        result = compute_household_equivalent(1_635_000_000, gpd=200)
+        assert 22_000 < result < 23_000
+
+    def test_zero_gallons(self):
+        assert compute_household_equivalent(0) == 0
+
+    def test_zero_gpd_returns_zero(self):
+        assert compute_household_equivalent(1_000_000, gpd=0) == 0
+
+    def test_negative_gpd_returns_zero(self):
+        assert compute_household_equivalent(1_000_000, gpd=-100) == 0
+
+    def test_default_gpd_is_200(self):
+        result_default = compute_household_equivalent(73_000_000)
+        result_explicit = compute_household_equivalent(73_000_000, gpd=200)
+        assert result_default == result_explicit
+
+
+# --- Tests for context data integrity ---
+
+
+class TestContextData:
+    """Validate the reference data used in Local Context cards."""
+
+    def test_all_regions_have_required_fields(self):
+        for key in ("loudoun", "pwc"):
+            ctx = CONTEXT_DATA[key]
+            assert "label" in ctx
+            assert "dc_water_gallons" in ctx
+            assert "dc_water_year" in ctx
+            assert "utility_total_gallons" in ctx
+            assert "avg_household_gpd" in ctx
+            assert "source" in ctx
+
+    def test_dc_water_less_than_total(self):
+        """Data center water should be a fraction of total utility sales."""
+        for key in ("loudoun", "pwc"):
+            ctx = CONTEXT_DATA[key]
+            assert ctx["dc_water_gallons"] < ctx["utility_total_gallons"]
+
+    def test_percentages_are_reasonable(self):
+        """DC share should be between 1% and 50% of total utility sales."""
+        for key in ("loudoun", "pwc"):
+            ctx = CONTEXT_DATA[key]
+            pct = ctx["dc_water_gallons"] / ctx["utility_total_gallons"] * 100
+            assert 1 < pct < 50, f"{ctx['label']}: {pct:.1f}% is outside expected range"
+
+    def test_central_ohio_projections(self):
+        oh = CONTEXT_DATA["central_ohio"]
+        assert oh["projected_dc_mgd_2030"] < oh["projected_dc_mgd_2050"]
+        assert oh["projected_dc_mgd_2030"] > 0
+
+    def test_loudoun_water_year(self):
+        assert CONTEXT_DATA["loudoun"]["dc_water_year"] == 2023
+
+    def test_pwc_data_center_count(self):
+        assert CONTEXT_DATA["pwc"]["dc_count"] == 56
+
+
+# --- Tests for per-query estimates data ---
+
+
+class TestPerQueryEstimates:
+    """Validate the per-query water estimate data."""
+
+    def test_at_least_three_estimates(self):
+        assert len(PER_QUERY_ESTIMATES) >= 3
+
+    def test_all_estimates_have_required_fields(self):
+        for est in PER_QUERY_ESTIMATES:
+            assert "label" in est
+            assert "ml" in est
+            assert "source" in est
+            assert "note" in est
+
+    def test_all_ml_values_positive(self):
+        for est in PER_QUERY_ESTIMATES:
+            assert est["ml"] > 0, f"Estimate '{est['label']}' has non-positive ml value"
+
+    def test_range_spans_orders_of_magnitude(self):
+        """The whole point is showing the 2000x variance."""
+        values = [e["ml"] for e in PER_QUERY_ESTIMATES]
+        assert max(values) / min(values) > 100
+
+    def test_estimates_are_sorted_by_ml_when_sorted(self):
+        """Verify sorting works for display."""
+        sorted_est = sorted(PER_QUERY_ESTIMATES, key=lambda e: e["ml"])
+        for i in range(len(sorted_est) - 1):
+            assert sorted_est[i]["ml"] <= sorted_est[i + 1]["ml"]

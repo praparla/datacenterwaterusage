@@ -370,7 +370,7 @@ def render_flow_chart(df: pd.DataFrame, cfg: dict):
         margin=cfg["margin"],
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, theme=None)
 
 
 def render_source_breakdown(df: pd.DataFrame, cfg: dict):
@@ -395,7 +395,7 @@ def render_source_breakdown(df: pd.DataFrame, cfg: dict):
         font=dict(size=cfg["font_size"]),
         margin=cfg["margin"],
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, theme=None)
 
 
 def render_seasonal_heatmap(df: pd.DataFrame, cfg: dict):
@@ -436,7 +436,185 @@ def render_seasonal_heatmap(df: pd.DataFrame, cfg: dict):
         margin=cfg["margin"],
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, theme=None)
+
+
+# --- Context & Education Panels ---
+
+
+# Reference data for local context comparisons.
+# Sources are cited inline — these are from published reports already scraped.
+CONTEXT_DATA = {
+    "loudoun": {
+        "label": "Loudoun County, Virginia",
+        "dc_water_gallons": 1_635_000_000,  # 899M potable + 736M reclaimed, ACFR 2023
+        "dc_water_year": 2023,
+        "utility_total_gallons": 10_700_000_000,  # ~29.3 MGD avg, Loudoun Water ACFR 2023
+        "avg_household_gpd": 200,  # VA avg residential per-household
+        "source": "Loudoun Water ACFR 2023",
+        "source_url": "https://www.loudounwater.org/about/comprehensive-annual-financial-reports",
+    },
+    "pwc": {
+        "label": "Prince William County, Virginia",
+        "dc_count": 56,
+        "dc_eru_total": 3_276,  # Total ERUs allocated to data centers
+        "avg_eru_gpd": 400,  # 1 ERU = 400 GPD per PWC definition
+        "dc_water_gallons": 478_296_000,  # 3276 ERU * 400 GPD * 365
+        "dc_water_year": 2024,
+        "utility_total_gallons": 6_500_000_000,  # ~17.8 MGD avg
+        "avg_household_gpd": 200,
+        "source": "PWC Industrial User Survey 2024",
+        "source_url": "https://www.pwcsa.org/",
+    },
+    "central_ohio": {
+        "label": "Central Ohio",
+        "projected_dc_mgd_2030": 40,
+        "projected_dc_mgd_2050": 90,
+        "source": "Central Ohio Regional Water Study (March 2025)",
+        "source_url": "https://epa.ohio.gov/",
+    },
+}
+
+# Per-query water estimates — sourced from published research.
+PER_QUERY_ESTIMATES = [
+    {
+        "label": "Google Gemini (self-reported)",
+        "ml": 0.26,
+        "source": "Google Environmental Report 2024",
+        "note": "Direct on-site cooling only",
+    },
+    {
+        "label": "Shaolei Ren / UC Riverside (median)",
+        "ml": 10,
+        "source": "Making AI Less Thirsty (2023)",
+        "note": "Includes server-room cooling",
+    },
+    {
+        "label": "Andy Masley estimate",
+        "ml": 1.0,
+        "source": "Substack analysis, 2024",
+        "note": "Direct cooling, calibrated to Google disclosure",
+    },
+    {
+        "label": "UC Riverside (upper bound, with power plant)",
+        "ml": 519,
+        "source": "Making AI Less Thirsty (2023)",
+        "note": "Includes thermoelectric cooling for electricity generation",
+    },
+]
+
+
+def compute_household_equivalent(gallons_per_year: int, gpd: int = 200) -> int:
+    """Convert annual gallons to equivalent number of households served."""
+    if gpd <= 0:
+        return 0
+    return int(gallons_per_year / (gpd * 365))
+
+
+def render_local_context(is_mobile: bool = False):
+    """Render the Local Context panel — puts water numbers in perspective."""
+    st.subheader("How Does This Compare?")
+
+    for key in ("loudoun", "pwc"):
+        ctx = CONTEXT_DATA[key]
+        dc_gal = ctx["dc_water_gallons"]
+        total_gal = ctx["utility_total_gallons"]
+        homes = compute_household_equivalent(dc_gal, ctx["avg_household_gpd"])
+        pct = (dc_gal / total_gal * 100) if total_gal > 0 else 0
+
+        dc_gal_b = dc_gal / 1_000_000_000
+        label = ctx["label"]
+        year = ctx["dc_water_year"]
+
+        st.markdown(
+            f"""<div class="context-card">
+<h4>{label}</h4>
+<div class="big-number">{dc_gal_b:.1f} billion gallons ({year})</div>
+<div class="comparison">
+Equivalent to serving <strong>{homes:,} homes</strong> for a year
+&mdash; roughly <strong>{pct:.0f}%</strong> of the utility's total water sales.
+</div>
+<div class="source-note">Source: {ctx['source']}</div>
+</div>""",
+            unsafe_allow_html=True,
+        )
+
+    # Ohio projections
+    oh = CONTEXT_DATA["central_ohio"]
+    st.markdown(
+        f"""<div class="context-card">
+<h4>{oh['label']} — Projected Growth</h4>
+<div class="big-number">{oh['projected_dc_mgd_2030']} MGD by 2030 &rarr; {oh['projected_dc_mgd_2050']} MGD by 2050</div>
+<div class="comparison">
+Industrial water demand projected to more than double in 20 years, driven by data centers
+and Intel's semiconductor campus.
+</div>
+<div class="source-note">Source: {oh['source']}</div>
+</div>""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_per_query_explainer():
+    """Render the Per-Query Water Debate explainer card."""
+    st.subheader("Per-Query Water: Why Estimates Vary by 2,000x")
+
+    estimates = sorted(PER_QUERY_ESTIMATES, key=lambda e: e["ml"])
+    low = estimates[0]
+    high = estimates[-1]
+
+    st.markdown(
+        f"""<div class="explainer-card">
+<h4>How much water does one AI query use?</h4>
+<p>Estimates range from <strong>{low['ml']} mL</strong> to <strong>{high['ml']} mL</strong>
+per query. The huge range is not a mistake &mdash; it reflects
+fundamentally different accounting methods.</p>
+<div class="range-bar"></div>
+<div class="range-label">
+    <span>{low['ml']} mL ({low['label']})</span>
+    <span>{high['ml']} mL ({high['label']})</span>
+</div>
+</div>""",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("**Four variables drive the variance:**")
+    st.markdown(
+        "1. **Inference vs. training** — Training a large model is a one-time cost "
+        "amortized over billions of queries; inference is per-request.\n"
+        "2. **Cooling technology** — Evaporative cooling consumes water; "
+        "air-cooled or liquid-to-liquid systems use much less.\n"
+        "3. **Direct vs. indirect water** — On-site cooling is ~20% of total footprint; "
+        "thermoelectric cooling at power plants is ~80%.\n"
+        "4. **Withdrawal vs. consumption** — Withdrawal counts water taken; "
+        "consumption counts water not returned. Withdrawal numbers are 3-5x higher."
+    )
+
+    with st.expander("Detailed estimates"):
+        for est in estimates:
+            st.markdown(
+                f"- **{est['ml']} mL** — {est['label']}  \n"
+                f"  _{est['note']}_ | Source: {est['source']}"
+            )
+
+
+def render_data_freshness(df: pd.DataFrame):
+    """Show when data was last updated."""
+    if "scraped_at" not in df.columns or df["scraped_at"].isna().all():
+        return
+
+    latest = df["scraped_at"].max()
+    if pd.isna(latest):
+        return
+
+    latest_str = latest.strftime("%B %d, %Y")
+    total = len(df)
+    flow_count = df["flow_mgd"].notna().sum()
+
+    st.caption(
+        f"Last updated: {latest_str} | "
+        f"{total:,} records | {flow_count} with flow data"
+    )
 
 
 # --- Data Table ---
@@ -512,6 +690,9 @@ def main():
         )
         return
 
+    # Data freshness
+    render_data_freshness(df)
+
     # Filters
     if is_mobile:
         filtered_df = render_inline_filters(df)
@@ -527,6 +708,13 @@ def main():
     # Flow chart (always shown, full width)
     render_flow_chart(filtered_df, cfg)
 
+    # Local context — always shown, high value
+    if is_mobile:
+        with st.expander("How does this compare?"):
+            render_local_context(is_mobile=True)
+    else:
+        render_local_context(is_mobile=False)
+
     # Source breakdown — desktop only, in main area
     if not is_mobile and not is_tablet:
         with st.expander("Records by Source"):
@@ -537,6 +725,14 @@ def main():
         with st.expander("Seasonal Patterns"):
             render_seasonal_heatmap(filtered_df, cfg)
 
+    # Per-query explainer — always available
+    if is_mobile:
+        with st.expander("Per-query water: why estimates vary"):
+            render_per_query_explainer()
+    else:
+        with st.expander("Understanding Per-Query Water Estimates", expanded=False):
+            render_per_query_explainer()
+
     # Data table
     if is_mobile:
         with st.expander("View data table"):
@@ -544,6 +740,15 @@ def main():
     else:
         st.subheader("Records")
         render_data_table(filtered_df, compact=is_tablet)
+
+    # Mobile download button (sidebar not visible on mobile)
+    if is_mobile and not filtered_df.empty:
+        st.download_button(
+            "Download CSV",
+            filtered_df.to_csv(index=False),
+            "dc_water_data.csv",
+            "text/csv",
+        )
 
 
 if __name__ == "__main__":

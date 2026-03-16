@@ -161,6 +161,30 @@ _RESPONSIVE_CSS = """
     .stDataFrame {
         overflow-x: auto;
     }
+
+    /* Touch-friendly buttons and controls */
+    button, .stButton > button, .stDownloadButton > button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Popover filter button: full width on mobile */
+    [data-testid="stPopover"] > button {
+        width: 100%;
+    }
+
+    /* Context cards: tighter padding */
+    .context-card {
+        padding: 0.75rem !important;
+        font-size: 0.9rem;
+    }
+
+    /* Expanders: larger tap target */
+    [data-testid="stExpander"] summary {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
 }
 
 /* --- TABLET: 768px - 1024px --- */
@@ -176,6 +200,61 @@ _RESPONSIVE_CSS = """
     [data-testid="stMetric"] [data-testid="stMetricValue"] {
         font-size: 1.8rem;
     }
+}
+
+/* --- Context card styling --- */
+.context-card {
+    background: #f8f9fa;
+    border-left: 4px solid #08519c;
+    padding: 1rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    margin-bottom: 0.75rem;
+}
+.context-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #08519c;
+}
+.context-card .big-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+}
+.context-card .comparison {
+    color: #555;
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+}
+.context-card .source-note {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+/* --- Explainer card styling --- */
+.explainer-card {
+    background: #fffbf0;
+    border: 1px solid #e8d5a3;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.explainer-card h4 {
+    margin: 0 0 0.75rem 0;
+    color: #6b4c00;
+}
+.range-bar {
+    background: linear-gradient(90deg, #bdd7e7 0%, #08519c 100%);
+    height: 12px;
+    border-radius: 6px;
+    position: relative;
+    margin: 1rem 0;
+}
+.range-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #555;
 }
 </style>
 """
