@@ -103,10 +103,15 @@ class TestConfigIntegrity:
                 assert state.isupper()
 
     def test_urls_are_https(self):
-        """All URL config values should use HTTPS."""
+        """All URL config values should use HTTPS (except known HTTP-only servers)."""
+        # Some legacy government servers only support HTTP
+        http_only_exceptions = {
+            "oh_epa_npdes_by_county",  # wwwapp.epa.ohio.gov does not support HTTPS
+        }
         url_keys = [
             k for k, v in CONFIG.items()
             if isinstance(v, str) and v.startswith("http")
+            and k not in http_only_exceptions
         ]
         for key in url_keys:
             url = CONFIG[key]

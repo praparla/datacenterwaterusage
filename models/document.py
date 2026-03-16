@@ -21,6 +21,8 @@ class DocumentSource(Enum):
     OH_EPA_NPDES_ARCGIS = "oh_epa_npdes_arcgis"
     OH_ODNR_WATER_WITHDRAWAL = "oh_odnr_water_withdrawal"
     EPA_ECHO_DMR = "epa_echo_dmr"
+    EPA_ECHO_NAICS = "epa_echo_naics"
+    OH_EPA_GENERAL_PERMIT = "oh_epa_general_permit"
     OH_CENTRAL_WATER_STUDY = "oh_central_water_study"
 
 

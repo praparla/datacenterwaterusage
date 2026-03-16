@@ -331,10 +331,10 @@ class TestRunPipeline:
     async def test_run_skips_already_fetched(self, config):
         """Already-tracked status checks are skipped."""
         state_mgr = FakeStateManager()
-        # BaseScraper.run() uses meta.get("url") as the doc_id
+        # BaseScraper.run() uses meta.get("id") or meta.get("url") as doc_id
         await state_mgr.mark_fetched(
             "oh_epa_general_permit",
-            "https://www.epa.state.oh.us/dsw/permits/gplist",
+            "oh-gp-ohd000001-status-202603",
         )
 
         scraper = OhioEPAGeneralPermitScraper(
