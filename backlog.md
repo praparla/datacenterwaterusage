@@ -2,7 +2,7 @@
 
 Items are ordered by priority (high / medium / low). Each includes a sample prompt for generating an implementation plan.
 
-Last reviewed: 2026-03-16. Added dashboard education panels (Phase 2) based on public discourse research.
+Last reviewed: 2026-03-16.
 
 ---
 
@@ -41,52 +41,36 @@ Last reviewed: 2026-03-16. Added dashboard education panels (Phase 2) based on p
 ### ✅ Virginia DEQ Water Withdrawal Permits (VWP)
 **Status**: Built — `scrapers/virginia/deq_vwp.py` (tests in test_deq_vwp.py). Queries ArcGIS EDMA MapServer layers 192 (individual) and 193 (general) for water withdrawal permits in Northern Virginia counties.
 
+### ✅ Dashboard Panel 2: Local Context Card
+**Status**: Built — `dashboard.py` renders "How does this compare?" cards for Loudoun (1.6B gal, ~22K homes equivalent, 15% of utility), PWC (56 DCs, 478M gal), and Central Ohio projections (40-90 MGD). 6 tests.
+
+### ✅ Dashboard Panel 4: Per-Query Debate Explainer
+**Status**: Built — `dashboard.py` static explainer card showing 0.26-519 mL range with four variance factors. 5 tests.
+
+### ✅ Mobile Dashboard Improvements
+**Status**: Built — Plotly theme=None fix for mobile stretching bug, touch-friendly CSS (44px min buttons), mobile download button, data freshness indicator, responsive context/explainer card styling. 6 tests.
+
 ---
 
 ## High Priority
 
-### Dashboard: Context Panel — Put the Numbers in Perspective (Phase 2)
-**Priority: HIGH** — This is the single most important educational improvement.
-
-Most visitors will arrive primed by viral headlines (e.g., "each AI prompt uses a bottle of water"). The dashboard should *immediately* anchor numbers with honest comparisons — not to minimize the issue but to make the scale legible.
-
-**Key design principles from research (March 2026):**
-- The Andy Masley / Karen Hao debate reveals that the biggest failure of public discourse is missing the direct/indirect distinction. On-site cooling is ~20% of total water footprint; power plant thermoelectric cooling is ~80%. Show both.
-- Per-prompt numbers vary by 500x depending on assumptions. Do not show a single figure — show a range with methodology notes.
-- The issue is *real but local*: aggregate percentages (data centers = 0.12% of Maricopa County water) obscure the hyperlocal concentration (one facility = 5M gal/day in one watershed). Show facility-level and system-level views.
-- The core legitimate grievance is **transparency** — NDAs, vetoed disclosure laws, no federal mandate. The dashboard can model this: show what IS known vs. what remains hidden.
-
-**Proposed dashboard panels (prioritized, simplest first):**
-
-#### Panel 1: The Two Water Footprints (highest impact, moderate effort)
+### Dashboard Panel 1: The Two Water Footprints (highest impact, moderate effort)
 Side-by-side view: direct on-site cooling water vs. indirect thermoelectric water from electricity generation. Sources: EPA ECHO DMR (already scraped) + EIA Form 923 (backlog). Headline framing: "80% of a data center's water footprint never touches the data center building."
 
 **Sample prompt:**
 > Add a "Two Footprints" panel to the Streamlit dashboard that shows, for each target WWTP permit, (1) the direct measured flow from EPA ECHO DMR, and (2) an estimated indirect thermoelectric water footprint calculated from the facility's electricity demand using EIA Form 923 state-level water intensity factors. Show as a stacked bar chart with a plain-English explainer of the methodology and a link to the EIA data source.
 
-#### Panel 2: Local Context Card — "How does this compare?" (high impact, low effort)
-For each data center cluster (Loudoun/PWC Virginia, New Albany/Columbus Ohio), show the facility's reported water use alongside: (a) residential equivalents, (b) a local comparator like golf courses or municipal use, and (c) the utility's total service area demand. Use Loudoun Water ACFR data (already scraped) + PWC IUS data (already scraped).
+### Dashboard Panel 3: Transparency Scorecard (high impact, moderate effort)
+A table of all scraped data sources, rated by: disclosure type (voluntary, mandated, inferred), geographic resolution (county, facility, permit-level), and data freshness. Show NDAs, vetoed disclosure bills (CA AB93, VA SB553 status), and gaps explicitly.
 
 **Sample prompt:**
-> Add a "Local Context" section to the dashboard that, for each geographic cluster, renders a card showing: the data center cluster's reported water consumption (from Loudoun ACFR/PWC IUS), the equivalent number of households served, the utility's total water sales, and the data center share as a percentage. Pull from existing scraped data. Use plain-English callouts like "Loudoun data centers used 1.6 billion gallons in 2023 — enough to serve 15,000 homes for a year, and roughly X% of Loudoun Water's total sales."
+> Add a "Transparency Scorecard" panel that lists every data source in the pipeline with columns: source name, disclosure type (voluntary/mandated/inferred), geographic resolution, update frequency, and a "confidence" rating. Highlight gaps where NDAs or vetoed bills block facility-level data. Include a note on Virginia SB 553 status.
 
-#### Panel 3: Transparency Scorecard — What We Know vs. What's Hidden (high impact, moderate effort)
-A table of all scraped data sources, rated by: disclosure type (voluntary, mandated, inferred), geographic resolution (county, facility, permit-level), and data freshness. Show NDAs, vetoed disclosure bills (CA AB93, VA SB553 status), and gaps explicitly. Frame it as "data quality" not "bad actors."
-
-**Sample prompt:**
-> Add a "Transparency Scorecard" panel that lists every data source in the pipeline with columns: source name, disclosure type (voluntary/mandated/inferred), geographic resolution, update frequency, and a "confidence" rating. Highlight gaps where NDAs or vetoed bills block facility-level data. Include a note on Virginia SB 553 status and the Botetourt County court precedent. This panel educates users on *why* the data is incomplete, not just that it is.
-
-#### Panel 4: The Per-Query Debate Explainer (medium impact, low effort — pure UI)
-A static explainer card that honestly shows the range of per-query water estimates (0.26ml to 519ml) and explains *why* they vary: AI vs. search vs. training, cooling technology, whether power plant water is included, whether "withdrawal" vs. "consumption" is being measured. Link to Hao's correction post and Masley's Substack.
+### Dashboard Panel 5: Timeline of Disclosure Events (medium impact, moderate effort)
+Timeline of key policy, legal, and voluntary disclosure events. Shows users that the data landscape is changing rapidly.
 
 **Sample prompt:**
-> Add a static "Per-Query Water: Why Estimates Vary" explainer card to the dashboard. Show a range visualization with labeled anchors (Google Gemini disclosure: 0.26ml; UC Riverside study: 519ml; Masley estimate: ~1ml). Explain the four variables that drive variance: (1) inference vs. training, (2) cooling tech, (3) direct vs. indirect water, (4) withdrawal vs. consumption accounting. No interactivity needed — this is an educational card with citations.
-
-#### Panel 5: Timeline of Disclosure Events (medium impact, moderate effort)
-A timeline of key policy, legal, and voluntary disclosure events: Loudoun Water ACFR filings, Ohio EPA OHD000001 general permit milestone, SB 553 legislative progress, CA AB93 veto, NDAs signed, court rulings. Shows users that the data landscape is changing rapidly. Updates as scrapers detect new documents.
-
-**Sample prompt:**
-> Add a "Policy & Disclosure Timeline" panel that renders a chronological list of key events in data center water transparency: ACFR filings with aggregate data, legislative milestones (SB 553, CA AB93), EPA permit finalizations (OHD000001), and FOIA/court rulings. Pull dates from scraped document metadata where available; otherwise use hardcoded reference data. Display as a vertical timeline with source links.
+> Add a "Policy & Disclosure Timeline" panel that renders a chronological list of key events in data center water transparency: ACFR filings, legislative milestones (SB 553, CA AB93), EPA permit finalizations (OHD000001), and FOIA/court rulings. Display as a vertical timeline with source links.
 
 ---
 
@@ -223,6 +207,18 @@ Create template FOIA requests targeting local water utilities for facility-level
 
 **Sample prompt:**
 > Create a `docs/foia_templates/` directory with template FOIA request letters for: (1) Loudoun Water — facility-level commercial/industrial water delivery records, (2) Prince William Water — same, (3) Western Virginia Water Authority — Google data center water contract records (citing the Botetourt County court precedent). Include guidance on Virginia FOIA law (Section 2.2-3700) and how to counter proprietary information exemption claims. Include sample follow-up templates if initial request is denied.
+
+### Map View — Facility Locations (Low)
+Add a Plotly scatter_mapbox or deck.gl map showing data center and WWTP facility locations from ArcGIS scraper data. Map-first designs (Visual Capitalist, RS Metrics) are more intuitive on mobile than table-first. Use existing geocoded permit data.
+
+**Sample prompt:**
+> Add a map tab/section to the dashboard using Plotly scatter_mapbox (or st.map for simplicity). Plot all scraped facility locations from ArcGIS data with color-coding by state and size by flow volume. On mobile, show map as the first view; on desktop, show alongside the flow chart. Clicking a facility should filter the dashboard to that location.
+
+### Streamlit Top Navigation for Multi-Panel Dashboard (Low)
+As the dashboard grows (context, scorecard, timeline panels), use `st.navigation(position="top")` (new in Streamlit 2025) to replace sidebar page navigation. More mobile-friendly than slide-out panels.
+
+**Sample prompt:**
+> Refactor the dashboard to use `st.navigation(position="top")` for multi-page layout: "Overview" (current flow chart + metrics), "Context" (local context cards + per-query explainer), "Scorecard" (transparency), "Timeline" (disclosure events). Each page loads only its own content. Mobile users get top tabs instead of hidden sidebar.
 
 ---
 

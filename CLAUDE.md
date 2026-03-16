@@ -95,7 +95,7 @@ Python-based scraping and data extraction pipeline that finds documents related 
 - **Logging**: structlog
 - **CLI**: click
 - **Dashboard**: streamlit + plotly (Phase 1), Observable Framework planned (Phase 2)
-- **Testing**: pytest + pytest-asyncio (294 tests)
+- **Testing**: pytest + pytest-asyncio (316 tests)
 
 ### Key Directories
 - `scrapers/` — one module per government portal, organized by state
