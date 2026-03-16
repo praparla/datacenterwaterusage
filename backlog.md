@@ -50,6 +50,15 @@ Last reviewed: 2026-03-16.
 ### ✅ Mobile Dashboard Improvements
 **Status**: Built — Plotly theme=None fix for mobile stretching bug, touch-friendly CSS (44px min buttons), mobile download button, data freshness indicator, responsive context/explainer card styling. 6 tests.
 
+### ✅ Dashboard Panel 3: Transparency Scorecard
+**Status**: Built — `dashboard.py` renders a table of all 11 data sources rated by disclosure type (mandated/voluntary/inferred), geographic resolution, update frequency, and confidence. Lists 4 known transparency gaps (NDAs, SB 553, AB 93, federal gap). 8 tests.
+
+### ✅ Dashboard Panel 5: Timeline of Disclosure Events
+**Status**: Built — `dashboard.py` renders chronological timeline of 9 key events (2020-2026) across policy, data, research, and legal categories. Color-coded badges, responsive. 7 tests.
+
+### ✅ Deduplication Engine
+**Status**: Built — `utils/dedup.py` with 3-pass strategy: exact URL, permit+month, fuzzy title. Merges cross-source duplicates, picks most complete record, adds `sources` column. 15 tests.
+
 ---
 
 ## High Priority
@@ -59,18 +68,6 @@ Side-by-side view: direct on-site cooling water vs. indirect thermoelectric wate
 
 **Sample prompt:**
 > Add a "Two Footprints" panel to the Streamlit dashboard that shows, for each target WWTP permit, (1) the direct measured flow from EPA ECHO DMR, and (2) an estimated indirect thermoelectric water footprint calculated from the facility's electricity demand using EIA Form 923 state-level water intensity factors. Show as a stacked bar chart with a plain-English explainer of the methodology and a link to the EIA data source.
-
-### Dashboard Panel 3: Transparency Scorecard (high impact, moderate effort)
-A table of all scraped data sources, rated by: disclosure type (voluntary, mandated, inferred), geographic resolution (county, facility, permit-level), and data freshness. Show NDAs, vetoed disclosure bills (CA AB93, VA SB553 status), and gaps explicitly.
-
-**Sample prompt:**
-> Add a "Transparency Scorecard" panel that lists every data source in the pipeline with columns: source name, disclosure type (voluntary/mandated/inferred), geographic resolution, update frequency, and a "confidence" rating. Highlight gaps where NDAs or vetoed bills block facility-level data. Include a note on Virginia SB 553 status.
-
-### Dashboard Panel 5: Timeline of Disclosure Events (medium impact, moderate effort)
-Timeline of key policy, legal, and voluntary disclosure events. Shows users that the data landscape is changing rapidly.
-
-**Sample prompt:**
-> Add a "Policy & Disclosure Timeline" panel that renders a chronological list of key events in data center water transparency: ACFR filings, legislative milestones (SB 553, CA AB93), EPA permit finalizations (OHD000001), and FOIA/court rulings. Display as a vertical timeline with source links.
 
 ---
 
@@ -91,12 +88,6 @@ Virginia SB 553 (2026 session) would require water providers to report data cent
 
 **Sample prompt:**
 > Build a simple legislative tracker that monitors the status of Virginia SB 553 and related bills (HB 496, HB 591) via the LegiScan API or Virginia LIS website. Alert when bill status changes. If SB 553 is enacted, design a scraper for the new monthly water consumption reports that will be filed with the State Water Control Board.
-
-### Deduplication Engine
-As we scrape multiple portals (now 20+ scrapers), the same document or data point may appear from different sources (e.g., a permit referenced in both DEQ and ECHO). Dedup is critical before the dataset grows larger.
-
-**Sample prompt:**
-> Build a deduplication module that identifies duplicate or near-duplicate records in the output CSV/JSON. Match on permit_number, source_url, and fuzzy-match on document_title. When duplicates are found, merge them into a single record keeping the most complete data from each source. Add a `sources` field that lists all portals where the record was found.
 
 ---
 
